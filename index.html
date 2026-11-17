@@ -59,6 +59,10 @@ ul{margin:.2em 0;padding-left:1.2em}
 .paper .q{font-size:14px}
 .paper table.sc{margin:4px 0}
 .paper .wno{font-size:9px;color:#777}
+.paper h4 .pid{float:right;font-size:11px;font-weight:400;color:#1d1d1d;line-height:1}
+.paper h4 .pid i{display:inline-block;width:5mm;height:5mm;border:1px solid #333;margin-left:1mm;vertical-align:middle}
+.m4 .paper h4 .pid{font-size:9px}
+.m4 .paper h4 .pid i{width:4mm;height:4mm;margin-left:.5mm}
 .paper .key{font-size:12px;margin:2px 0 4px}
 .paper table.sc td.num{width:7mm;text-align:center;font-size:13px}
 .paper table.sc th{font-size:10px;font-weight:400;text-align:center;white-space:nowrap}
@@ -126,6 +130,14 @@ ul{margin:.2em 0;padding-left:1.2em}
 .tl-t td{text-align:right;font-variant-numeric:tabular-nums}
 .tl-t thead th{border-bottom:2px solid var(--line)}
 #tally select{font-size:1.1rem;min-height:44px}
+#tally #tl-pid{width:5.5em;letter-spacing:.1em;text-transform:uppercase}
+#tally input[aria-invalid="true"]{border-color:var(--warn);background:var(--warn-bg)}
+#rec{border:2px solid var(--accent);border-radius:12px;background:var(--card);padding:12px 14px;margin:14px 0}
+#rec .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+#rec button{font-size:1rem;min-height:44px;padding:6px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer}
+#rec input[type=text]{font-size:1.1rem;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+#rec details{border-top:1px solid var(--line);padding:6px 0}
+#rec summary{cursor:pointer}
 #tabs{position:sticky;top:0;z-index:10;background:var(--bg);display:flex;gap:6px;padding:8px 0}
 #tabs button{flex:1;min-height:48px;font-size:1rem;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
 #tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:600}
@@ -134,6 +146,8 @@ body:not(.sheet-open) #tab-sheet{opacity:.45}
   body:not([data-tab="sheet"]):not([data-tab="tally"]) #sheet, body[data-tab="tally"] #sheet{display:none !important}
   body[data-tab="sheet"] #pane-pick, body[data-tab="tally"] #pane-pick{display:none}
   body:not([data-tab="tally"]) #tally{display:none !important}
+  body:not([data-tab="rec"]) #rec{display:none !important}
+  body[data-tab="rec"] #pane-pick{display:none}
   body:not(.pour-shown) #pr-pour{display:none}
   #pr-answers .sheetpage:not(:first-child){display:none}
 }
@@ -161,7 +175,7 @@ body:not(.sheet-open) #tab-sheet{opacity:.45}
   body[data-print="qr"] .ph-ptitle{display:block !important;font-size:18pt;font-weight:bold;margin:0 0 10mm}
   body[data-print="qr"] #sh-qr{margin:0 auto 8mm}
   body[data-print="qr"] #sh-qr img,body[data-print="qr"] #sh-qr canvas{width:120mm !important}
-  #tally,#tabs,#tab-msg{display:none !important}
+  #tally,#tabs,#tab-msg,#rec{display:none !important}
   /* 結果を保存：レポートだけ（ほかの印刷＝注ぎ表・回答用紙は data-print が pour／無し のときのまま） */
   html body[data-print="report"]{background:#fff;color:#222;--ink:#222;--sub:#555;--line:#bbb;--accent:#2f5d8a;--card:#fff;--bg:#fff}
   html body[data-print="report"] main{padding:0;max-width:none}
@@ -179,7 +193,7 @@ body:not(.sheet-open) #tab-sheet{opacity:.45}
 <body>
 <main>
 <h1>評価方法えらび</h1>
-<nav id="tabs" role="tablist"><button type="button" role="tab" id="tab-pick" aria-selected="true">選ぶ</button><button type="button" role="tab" id="tab-sheet" aria-selected="false">紙を作る</button><button type="button" role="tab" id="tl-open" aria-selected="false">打ち込む</button></nav>
+<nav id="tabs" role="tablist"><button type="button" role="tab" id="tab-pick" aria-selected="true">選ぶ</button><button type="button" role="tab" id="tab-sheet" aria-selected="false">紙を作る</button><button type="button" role="tab" id="tl-open" aria-selected="false">打ち込む</button><button type="button" role="tab" id="tab-rec" aria-selected="false">記録</button></nav>
 <p class="msg" id="tab-msg" role="status"></p>
 <div id="pane-pick">
 <p class="lead">何をどう測りたいかを選ぶと、評価方法をしぼります。自分たちで測るための手引きです。評価書や認定には使えません。</p>
@@ -266,7 +280,8 @@ body:not(.sheet-open) #tab-sheet{opacity:.45}
 <div id="tl-work" hidden>
 <p class="src" id="tl-head"></p>
 <div id="tl-names"></div>
-<div class="row"><label>評価者 <select id="tl-ev" aria-label="評価者番号"></select></label></div>
+<div class="row"><label>評価者 <select id="tl-ev" aria-label="評価者番号"></select></label><label id="tl-pidrow" hidden>名札の番号 <input type="text" id="tl-pid" maxlength="4" size="5" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="名札の番号"></label></div>
+<div class="row" id="tl-pfix" hidden><label>名前 <input type="text" id="tl-pname" size="8" autocomplete="off" aria-label="名簿に足す人の名前"></label><button type="button" id="tl-padd">名簿に足す</button><button type="button" id="tl-pclr">名無しにする</button></div>
 <div id="tl-sets"></div>
 <div class="row"><button type="button" id="tl-prev">← 前の人</button><button type="button" id="tl-next">次の人 →</button></div>
 <p class="src" id="tl-hint"></p>
@@ -275,6 +290,22 @@ body:not(.sheet-open) #tab-sheet{opacity:.45}
 <div id="tl-res" aria-live="polite"></div>
 </div>
 </section>
+<section id="rec">
+<h2>記録帳</h2>
+<div class="row"><button type="button" id="rc-open">記録帳を開く</button><button type="button" id="rc-new">新しく作る</button><button type="button" id="rc-save">保存</button></div>
+<p class="src" id="rc-lead">次も、保存したファイルを「記録帳を開く」で開きます。</p>
+<p class="msg" id="rc-msg" role="status"></p>
+<div id="rc-body" hidden>
+<h3>名簿</h3>
+<div id="rc-people"></div>
+<div class="row"><label>名前 <input type="text" id="rc-name" size="10" autocomplete="off" aria-label="足す人の名前"></label><button type="button" id="rc-add">人を足す</button></div>
+<h3>評価者ごと</h3>
+<div id="rc-per"></div>
+<h3>試験ごと</h3>
+<div id="rc-tests"></div>
+</div>
+</section>
+<input type="file" id="rc-file" accept=".json,application/json" tabindex="-1" aria-hidden="true" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0">
 </main>
 
 <script id="core">
@@ -825,6 +856,15 @@ function tally(a0, ans){
   }
   return res;
 }
+// 分析型（目的が好みでない）：評価者に自分の番号を聞く（docs/method_selector.md §12）。好みは匿名のまま番号を聞かない
+function analytic(a){ return (a.purpose || 'diff') !== 'pref' && a.method !== 'paired_pref'; }
+// 正解がある手法のセットの正誤（3点・1:2点・2点（差）＝集計と同じ r.answer での判定／順位法（強さ）＝そのセットを強い順に全部正しく並べたら正解）。
+// 正解の無い手法・そろっていないセットは null
+function correctOf(a, r, v){
+  if (!r.answer || !complete(a, r, v)) return null;
+  if (a.method === 'ranking') return r.answer.every(function(c, i){ return v[c] === i + 1; });
+  return r.answer.indexOf(v) >= 0;
+}
 function csv(a, ans){
   function r0cols(a){ var h = []; for (var i = 0; i < a.names.length; i++) h.push((i + 1) + '番目の言葉'); return h; }
   var q = function(s){ s = String(s); if (/^[=+\-@]/.test(s) && !/^[-+]?\d+(\.\d+)?( [-+]?\d+(\.\d+)?)*$/.test(s)) s = "'" + s; /* 数値（−3 など）には付けない */ return '"' + s.replace(/"/g, '""') + '"'; }, rank = a.method === 'ranking', pref = a.method === 'paired_pref', sco = a.method === 'scoring', cat = a.method === 'cata', names = a.names, itemNames = (a.itemNames || []);
@@ -841,7 +881,7 @@ function csv(a, ans){
   return '﻿' + out.join('\r\n') + '\r\n';
 }
 return {paramsOf: paramsOf, recallOf: recallOf, parseRecall: parseRecall, norm: norm, rebuild: rebuild, saveSheet: saveSheet, loadSheet: loadSheet, saveAnswers: saveAnswers, loadAnswers: loadAnswers,
-  keyOf: keyOf, present: present, complete: complete, completeItem: completeItem, cochranQ: cochranQ, pairsControl: pairsControl, ctrlSummary: ctrlSummary, anova2: anova2, pairsBonferroni: pairsBonferroni, fUpper: fUpper, tTwo: tTwo, chi2Upper: chi2Upper, friedmanExact3P: friedmanExact3P, normInv: normInv, friedman: friedman, tally: tally, csv: csv};
+  keyOf: keyOf, present: present, complete: complete, completeItem: completeItem, cochranQ: cochranQ, pairsControl: pairsControl, ctrlSummary: ctrlSummary, anova2: anova2, pairsBonferroni: pairsBonferroni, fUpper: fUpper, tTwo: tTwo, chi2Upper: chi2Upper, friedmanExact3P: friedmanExact3P, normInv: normInv, friedman: friedman, tally: tally, csv: csv, analytic: analytic, correctOf: correctOf};
 })();
 if (typeof module !== 'undefined') module.exports = TALLY;
 </script>
@@ -860,7 +900,7 @@ var CH = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // SHEET.GROUP_CHARS と同じ（0/
 var ROOM_RE = /^[2-9A-HJ-NP-Z]{6}$/, KEY_RE = /^[2-9A-HJ-NP-Z]{10}$/;
 // データの形（database.rules.json と同じ決まり。README の表）：
 // groups/$g/{host: 作った uid, hostkey: 秘密（誰も読めない）, hosts/$uid: 秘密（係の端末）, n: 枠の数,
-//            slots/$e: 並び, q: 問い, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
+//            slots/$e: 並び, q: 問い, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t, p（自分の番号・分析型だけ）}}
 // slots/$e＝「開始セット＋向き|セット:コード,コード(,コード…)|…」（回る順・置き換えた後のコード・1セットに2〜8個）。中身・試料名は入れない
 var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9](,[0-9][0-9][0-9])(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?)+$/;
 // q＝問い（JSON の文字。手法・比べるもの・言葉・尺度。答えるのに要る文だけで、試料名・正解・中身は入れない）。無い組（host.html の組）は3点試験法
@@ -868,6 +908,8 @@ var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9](,[0-9][0-9][0-9])(
 //   コード=値.値,…（評点法＝比べるものの順の点・CATA＝選んだ言葉の番号1〜。何も無いときは「コード=」＝当てはまるものなし）
 var ANS_V = '(-[1-3]|1[0-9]|2[0-5]|[0-9])', ANS_E = '[0-9][0-9][0-9](=(' + ANS_V + '(\\.' + ANS_V + ')*)?)?', ANS_S = '[0-9][0-9]?:' + ANS_E + '(,' + ANS_E + ')*';
 var ANS_RE = new RegExp('^' + ANS_S + '(\\|' + ANS_S + ')*$'), ANS_MAX = 8000, Q_MAX = 4000;
+// answers/$e/p＝自分の番号（4文字・分析型の組で q に id:1 があるときだけ。docs/method_selector.md §12）。ルールと同じ書き方（くり返しを並べる）
+var P_RE = /^[2-9A-HJ-NP-Z][2-9A-HJ-NP-Z][2-9A-HJ-NP-Z][2-9A-HJ-NP-Z]$/;
 var log = []; // この端末が受け取ったデータの控え（点検用。画面には出さない）
 function rec(v){ try { log.push(JSON.parse(JSON.stringify(v === undefined ? null : v))); } catch (e) {} return v; }
 function rand(len){ var b = new Uint8Array(len), s = ''; crypto.getRandomValues(b); for (var i = 0; i < len; i++) s += CH[b[i] % 32]; return s; } // 256÷32 で偏りなし
@@ -911,9 +953,10 @@ function Local(){
   this.getQ = function(g){ var d = read(g); if (!d) return Promise.resolve(null);
     if (!((d.byuid || {})[me.uid] || isHost(d))) return Promise.reject(denied()); // 問いは番号を取った人と係だけ（ルールと同じ）
     return Promise.resolve(d.q || null); };
-  this.send = function(g, e, a){
+  this.send = function(g, e, a, onLate, p){
     if (navigator.onLine === false) return Promise.reject(offlineErr());
-    return locked(g, function(d){ if (!d || !d.claims || d.claims[e] !== me.uid) throw denied(); d.answers = d.answers || {}; d.answers[e] = {a: a, t: Date.now()}; return {write: d, value: true}; });
+    if (p !== undefined && !P_RE.test(p)) return Promise.reject(denied()); // 番号の形はルールと同じ（4文字）
+    return locked(g, function(d){ if (!d || !d.claims || d.claims[e] !== me.uid) throw denied(); d.answers = d.answers || {}; d.answers[e] = {a: a, t: Date.now()}; if (p !== undefined) d.answers[e].p = p; return {write: d, value: true}; });
   };
   this.onConn = function(cb){ var f = function(){ cb(navigator.onLine !== false); }; window.addEventListener('online', f); window.addEventListener('offline', f); f(); };
 }
@@ -971,8 +1014,9 @@ function Fire(){
   this.getSlot = function(g, e){ return G(g).child('slots/' + e).get().then(function(s){ return s.val(); }); };
   this.getQ = function(g){ return G(g).child('q').get().then(function(s){ return s.val(); }); };
   // 送る：つながっていないと SDK は書き込みを溜めて後で送るので、6秒で届かなければ「送れていない」と返し、届いたら onLate を呼ぶ
-  this.send = function(g, e, a, onLate){
-    var done = false, p = G(g).child('answers/' + e).set({a: a, t: firebase.database.ServerValue.TIMESTAMP}).then(function(){ done = true; return true; });
+  this.send = function(g, e, a, onLate, pid){
+    var v = {a: a, t: firebase.database.ServerValue.TIMESTAMP}; if (pid !== undefined) v.p = pid; // p＝自分の番号（分析型の組だけ）
+    var done = false, p = G(g).child('answers/' + e).set(v).then(function(){ done = true; return true; });
     var t = new Promise(function(_, ng){ setTimeout(function(){ if (!done) ng(offlineErr()); }, connected ? 6000 : 300); });
     p.then(function(){ if (onLate) onLate(); }, function(){});
     return Promise.race([p, t]);
@@ -982,7 +1026,7 @@ function Fire(){
 
 var impl = LOCAL ? new Local() : new Fire(), ready = null;
 return {
-  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, ANS_MAX: ANS_MAX, Q_MAX: Q_MAX, CH: CH, log: log,
+  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, P_RE: P_RE, ANS_MAX: ANS_MAX, Q_MAX: Q_MAX, CH: CH, log: log,
   randRoom: function(){ return rand(6); }, randKey: function(){ return rand(10); }, // 秘密＝32文字×10＝50ビット（crypto）
   init: function(){ return ready || (ready = impl.init().then(function(){ return {uid: impl.uid, mode: impl.mode}; })); }, // 何度呼んでも1回だけ
   create: function(g, key, n, slots, q){ return impl.create(g, key, n, slots, q); }, // q（問い）は無くてもよい（host.html は3点だけなので置かない）
@@ -992,7 +1036,7 @@ return {
   getSlot: function(g, e){ return impl.getSlot(g, e).then(rec); },
   getQ: function(g){ return impl.getQ(g).then(rec); },
   remove: function(g){ return impl.remove(g); },
-  send: function(g, e, a, onLate){ return impl.send(g, e, a, onLate); },
+  send: function(g, e, a, onLate, p){ return impl.send(g, e, a, onLate, p); }, // p＝自分の番号（無ければ送らない）
   onConn: function(cb){ return impl.onConn(cb); }
 };
 })();
@@ -1037,6 +1081,7 @@ function qOf(a, st){
   if (a.method === 'ranking') q.p = a.purpose === 'intensity' ? 'intensity' : 'pref';
   if (a.method === 'scoring'){ q.p = a.purpose === 'pref' ? 'pref' : 'intensity'; q.it = (st.attrs || []).slice(0, a.items); while (q.it.length < a.items) q.it.push(''); q.v = SHEET.SCALES[a.scale].vals.slice(); if (SHEET.SCALES[a.scale].words) q.sw = SHEET.SCALES[a.scale].words.slice(); }
   if (a.method === 'cata') q.w = (st.words || []).slice();
+  if (TALLY.analytic(a)) q.id = 1; // 分析型：答える前に自分の番号を聞く（§12）
   return JSON.stringify(q);
 }
 function itemsOfQ(qs){ try { var q = JSON.parse(qs || 'null'); return q && (q.it || q.w) || null; } catch (e) { return null; } } // 評点法の比べるもの・CATA の言葉（打ち込みの見出しに使う）
@@ -1064,6 +1109,10 @@ function answersOf(a, d){
   return ans;
 }
 // パネルの URL：公開先は selector.html が index.html として panel.html と同じフォルダ。手元（selector.html の名前のまま）は隣の phone/panel.html
+// 届いた番号（answers/$e/p）：評価者 → 番号。形（4文字）の合うものだけ
+function pidsOf(a, d){ var o = {}, got = (d && d.answers) || {};
+  Object.keys(got).forEach(function(k){ var e = +k, v = got[k]; if (String(e) === k && e >= 1 && e <= a.n && v && typeof v.p === 'string' && STORE.P_RE.test(v.p)) o[e] = v.p; });
+  return o; }
 function panelUrl(room){ var u = new URL(/\/selector\.html$/.test(location.pathname) ? 'phone/panel.html' : 'panel.html', location.href); u.search = '?g=' + room + (STORE.FORCED ? '&local=1' : ''); u.hash = ''; return u.href; }
 function qr(el, text){ el.innerHTML = ''; el.hidden = false; var draw = function(){ try { new QRCode(el, {text: text, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.M}); } catch (e) { el.hidden = true; } };
   if (window.QRCode) return draw(); var s = document.createElement('script'); s.src = QR_LIB; s.onload = draw; s.onerror = function(){ el.hidden = true; }; document.head.appendChild(s); } // QR が読めなくても URL の文字で参加できる
@@ -1088,7 +1137,7 @@ function create(a, names, q){
   if (q.length > STORE.Q_MAX) return Promise.reject(new Error('qlong'));
   return STORE.init().then(function go(){
     var room = STORE.randRoom();
-    return STORE.create(room, key, h.n, slotsOf(h), a.method === 'triangle' ? undefined : q).then(function(){ // 3点は q を置かない（host.html の組と同じ形）
+    return STORE.create(room, key, h.n, slotsOf(h), a.method === 'triangle' && !TALLY.analytic(a) ? undefined : q).then(function(){ // 番号を聞かない3点は q を置かない（host.html の組と同じ形）。分析型の3点は {m:'triangle',id:1}
       var ph = {room: room, key: key, recall: recall, full: fullKey(recall, key), q: q};
       put(room, {key: ph.full, names: names, group: a.group, q: q, t: Date.now()}); return ph;
     }, function(err){ if (String(err && err.message) === 'exists' && ++tries < 5) return go(); throw err; });
@@ -1118,7 +1167,7 @@ function reopen(room, raw){
       return {a: a, names: a.names, saved: !!saved, phone: {room: room, key: key, recall: recall, full: fullKey(recall, key), q: q}}; });
   }, function(err){ return err && err.message === 'denied' ? bad : {error: 'つながりません。電波を確かめてください。'}; });
 }
-return {ok: ok, can: can, qOf: qOf, hide: hide, slotOf: slotOf, answersOf: answersOf, panelUrl: panelUrl, qr: qr, watch: watch, create: create, reopen: reopen, remove: remove, get: get, findByGroup: findByGroup};
+return {ok: ok, can: can, qOf: qOf, hide: hide, slotOf: slotOf, answersOf: answersOf, pidsOf: pidsOf, panelUrl: panelUrl, qr: qr, watch: watch, create: create, reopen: reopen, remove: remove, get: get, findByGroup: findByGroup};
 })();
 </script>
 
@@ -1303,8 +1352,9 @@ function buildAnswers(a){
   }
   function cupsHTML(r){ if (cat) return cataHTML(r); if (sco) return scoreHTML(r); return '<div class="cups">'+(st.method === 'duotrio' ? '<div class="cup"><b>見本</b>最初に</div>' : '')
       + r.cups.map(function(c, i){ return '<div class="cup">'+(i + 1)+'番目<b>'+c.code+'</b>'+(rank ? '<span class="rank">順位</span>' : '')+'</div>'; }).join('') + '</div>'; }
+  var PID = TALLY.analytic(st) ? '<span class="pid">名札の番号<i></i><i></i><i></i><i></i></span>' : ''; // 分析型だけ自分の番号の4マス（§12）。見出しの行の右に置き、紙の高さを変えない
   function paperHTML(rs, label){
-    return '<div class="paper"><span class="grp">組 '+(st.phone ? st.phone.room : a.group)+'</span><h4>官能評価 回答用紙</h4><p>評価者番号 <b>'+rs[0].ev+'</b>'+(desk ? '　開始セット：<b>'+rs[0].start+'・'+(rs[0].dir === 'L' ? '左へ' : '右へ')+'</b>' : '')+(label || '')+'　日付 <span class="fill"></span></p><p class="q">'+esc(q)+'</p>'
+    return '<div class="paper"><span class="grp">組 '+(st.phone ? st.phone.room : a.group)+'</span><h4>官能評価 回答用紙'+PID+'</h4><p>評価者番号 <b>'+rs[0].ev+'</b>'+(desk ? '　開始セット：<b>'+rs[0].start+'・'+(rs[0].dir === 'L' ? '左へ' : '右へ')+'</b>' : '')+(label || '')+'　日付 <span class="fill"></span></p><p class="q">'+esc(q)+'</p>'
       + (sco && SHEET.SCALES[a.scale].words ? '<p class="key">'+SHEET.SCALES[a.scale].words.map(function(w, i){ return '<span style="white-space:nowrap">'+SHEET.SCALES[a.scale].vals[i]+'＝'+esc(w)+'</span>'; }).join('　')+'</p>' : '')
       + (rs.length > 1 ? rs.map(function(r){ return '<div class="rep"><span class="replabel">'+BL(r)+'</span>'+cupsHTML(r)+'</div>'; }).join('') : cupsHTML(rs[0]))
       + (reps > 1 ? '<p class="q">'+RINSE+'</p>' : '') + '<p class="q">'+(cat ? GUESS_CATA : sco ? GUESS_SCORE : rank ? GUESS_RANK : GUESS)+'</p></div>';
@@ -1473,7 +1523,10 @@ window.sheetRefresh = function(){ if (st && keyOf() !== st.key) close_('条件�
 // 打ち込み画面：評価者ごと・セット（回）ごとに紙と同じ並びのコードを出す。正解・不正解は集計するまで出さない
 (function(){
 if (typeof document === 'undefined') return;
-var $ = function(id){ return document.getElementById(id); }, box = $('tally'), cur = null; // cur = {a, ans, ev, names, phone, pans, ansKey}
+var $ = function(id){ return document.getElementById(id); }, box = $('tally'), cur = null; // cur = {a, ans, ev, names, phone, pans, ppid, ansKey, bad}
+// 番号（分析型だけ・§12）：係が打った・直した番号（cur.ans.pid[評価者]。'' は空にした＝名無し）が先、無ければスマホで届いた p
+function pidOf(ev){ var m = cur.ans.pid; if (m && m[ev] !== undefined) return m[ev]; return (cur.ppid && cur.ppid[ev]) || ''; }
+function ana(){ return TALLY.analytic(cur.a); }
 // スマホの答え（pans）と手入力（ans）を合わせた打ち込みデータ。同じ評価者・セットはスマホが届いた方を使う（手入力は消さずに残す）
 function eff(){ if (!cur.pans) return cur.ans; var m = {}, k; for (k in cur.ans) m[k] = cur.ans[k]; for (k in cur.pans) m[k] = cur.pans[k]; return m; }
 function byPhone(k){ return !!cur.pans && cur.pans[k] !== undefined; }
@@ -1523,7 +1576,8 @@ function evDone(ev){ var A = eff(); return evRows(ev).every(function(r){ return 
 function render(){
   $('tl-sets').innerHTML = evRows(cur.ev).map(setHTML).join('');
   var sel = $('tl-ev'), done = 0, i;
-  for (i = 0; i < sel.options.length; i++){ var e = i + 1, d = evDone(e); sel.options[i].textContent = e + (d ? ' ✓' : ''); }
+  for (i = 0; i < sel.options.length; i++){ var e = i + 1, d = evDone(e); sel.options[i].textContent = e + (d ? ' ✓' : '') + (cur.bad && cur.bad.indexOf(e) >= 0 ? ' ！' : ''); }
+  var bad = !!cur.bad && cur.bad.indexOf(cur.ev) >= 0; $('tl-pidrow').hidden = !ana(); $('tl-pid').value = ana() ? pidOf(cur.ev) : ''; $('tl-pid').setAttribute('aria-invalid', String(bad)); $('tl-pfix').hidden = !bad;
   done = TALLY.present(cur.a, eff()).length; // 1つでも打ち込んだ人（来なかった人＝何も無い人は数えない）
   sel.value = String(cur.ev); $('tl-prev').disabled = cur.ev <= 1; $('tl-next').disabled = cur.ev >= cur.a.n;
   $('tl-prog').textContent = '打ち込んだ人 ' + done + '人（刷った' + cur.a.n + '人分）' + (cur.phone ? '・うちスマホ ' + TALLY.present(cur.a, cur.pans || {}).length + '人' : '');
@@ -1539,7 +1593,7 @@ function namesForm(){
 }
 function start(a, names, askNames, phone){
   var ak = phone ? 'P' + phone.room : a.group; // スマホの組の手入力は組（6文字）ごとに残す（置き換え前のコードの打ちかけと混ぜない）
-  cur = {a: a, ans: TALLY.loadAnswers(ak), ev: 1, names: names.slice(), phone: phone || null, pans: null, ansKey: ak};
+  cur = {a: a, ans: TALLY.loadAnswers(ak), ev: 1, names: names.slice(), phone: phone || null, pans: null, ppid: null, ansKey: ak, bad: null};
   TALLY.saveSheet(a, cur.names);
   var sel = $('tl-ev'), h = ''; for (var e = 1; e <= a.n; e++) h += '<option value="' + e + '">' + e + '</option>'; sel.innerHTML = h;
   $('tl-head').textContent = '組 ' + a.group + '・' + CORE.METHODS[a.method].name + '・' + a.n + '人分' + (a.reps > 1 ? '×' + a.reps + (a.desk ? 'セット' : '回') : '') + (phone ? '・スマホの組 ' + phone.room : '');
@@ -1548,9 +1602,9 @@ function start(a, names, askNames, phone){
   $('tl-find').hidden = true; $('tl-work').hidden = false; $('tl-res').innerHTML = ''; msg('');
   $('tl-del').hidden = !phone || !!phone.gone;
   if (phone){ $('tl-hint').textContent += 'スマホで届いた所は押せません（スマホの答えを使います）。'; var me = cur; }
-  if (phone && phone.gone){ cur.pans = PHONE.answersOf(a, phone.gone); $('tl-head').textContent += '（サーバーから消した組）'; }
+  if (phone && phone.gone){ cur.pans = PHONE.answersOf(a, phone.gone); cur.ppid = PHONE.pidsOf(a, phone.gone); $('tl-head').textContent += '（サーバーから消した組）'; }
   else if (phone){
-    PHONE.watch(phone.room, function(d){ if (cur !== me) return; var nx = PHONE.answersOf(cur.a, d); if (JSON.stringify(nx) !== JSON.stringify(cur.pans || {})) $('tl-res').innerHTML = ''; cur.pans = nx; render(); }); } // 新しい答えが届いたら、前の集計は消す
+    PHONE.watch(phone.room, function(d){ if (cur !== me) return; var nx = PHONE.answersOf(cur.a, d); if (JSON.stringify(nx) !== JSON.stringify(cur.pans || {})) $('tl-res').innerHTML = ''; cur.pans = nx; cur.ppid = PHONE.pidsOf(cur.a, d); render(); }); } // 新しい答えが届いたら、前の集計は消す
   render();
 }
 function openPhone(room, key){
@@ -1623,7 +1677,7 @@ function report(r, sec){ // sec = {method: [文], table: html, test: html, end: 
   var meta = ['作成日 ' + today() + '・組 ' + a.group, '手法 ' + CORE.METHODS[a.method].name, '試料 ' + nl.join('・') + (its.length ? '（比べるもの：' + its.join('・') + '）' : ''), '回答人数 ' + r.people + '人'];
   return '<details class="tl-rep"><summary>くわしい数字（使った方法・表・p値）</summary><p class="tl-ptitle">官能評価の結果</p><div class="tl-meta">' + ps(meta) + '</div>'
     + '<h4>1. 使った方法</h4>' + ps(sec.method) + '<h4>2. 集計表</h4>' + sec.table + '<h4>3. 検定の値とp値</h4>' + sec.test + '<h4>4. 結論と注意</h4>' + sec.end + '</details>'
-    + '<div class="row tl-saverow"><button type="button" class="tl-save">結果を保存</button></div>';
+    + '<div class="row tl-saverow"><button type="button" class="tl-save">結果を保存</button><button type="button" class="tl-kadd">記録帳に足す</button></div><div class="row tl-kneed" hidden><button type="button" data-kb="open">記録帳を開く</button><button type="button" data-kb="new">新しく作る</button></div>';
 }
 function endOf(bigs, notes){ return bigs.map(function(b){ return '<p><b>' + esc(b) + '</b></p>'; }).join('') + ps(notes); }
 function top(bigs, small){ return bigs.map(function(b){ return '<p class="tl-big">' + esc(b) + '</p>'; }).join('') + small.map(function(t){ return '<p class="src">' + esc(t) + '</p>'; }).join(''); }
@@ -1755,7 +1809,7 @@ $('tl-del').addEventListener('click', function(){
   if (!cur || !cur.phone || cur.phone.gone || !confirm('スマホの答えをサーバーから消します。この端末の控えは残ります。元に戻せません。')) return;
   var me = cur;
   var room = cur.phone.room;
-  PHONE.remove(room).then(function(g){ if (window.sheetPhoneGone) window.sheetPhoneGone(room, g); if (cur !== me) return; cur.phone.gone = g; cur.pans = PHONE.answersOf(cur.a, g); $('tl-del').hidden = true;
+  PHONE.remove(room).then(function(g){ if (window.sheetPhoneGone) window.sheetPhoneGone(room, g); if (cur !== me) return; cur.phone.gone = g; cur.pans = PHONE.answersOf(cur.a, g); cur.ppid = PHONE.pidsOf(cur.a, g); $('tl-del').hidden = true;
     $('tl-head').textContent += '（サーバーから消した組）'; msg('サーバーから消しました。この端末の控えで集計できます。'); render(); },
     function(err){ msg(err && err.message === 'denied' ? 'この組は消せませんでした。' : 'つながりません。電波を確かめてください。'); });
 });
@@ -1795,35 +1849,162 @@ $('tl-sum').addEventListener('click', function(){ if (cur) result(); });
 // 結果を保存：レポートだけを印刷（4段を開いた状態で）。iPhone は共有から PDF に
 var reopen = null;
 $('tl-res').addEventListener('click', function(e){
+  if (e.target.classList && e.target.classList.contains('tl-kadd')) return kAdd();
+  var kb = e.target.getAttribute && e.target.getAttribute('data-kb');
+  if (kb === 'new'){ if (KIROKU.create()) kAdd(); return; }
+  if (kb === 'open') return KIROKU.pick(function(){ kAdd(); });
   if (!e.target.classList || !e.target.classList.contains('tl-save')) return;
   var d = $('tl-res').querySelector('details.tl-rep'); if (!d) return;
   reopen = d.open ? null : d; d.open = true; document.body.setAttribute('data-print', 'report'); window.print();
 });
 window.addEventListener('afterprint', function(){ if (reopen){ reopen.open = false; reopen = null; } });
-$('tl-csv').addEventListener('click', function(){
-  if (!cur) return;
-  var text = TALLY.csv(cur.a, eff()), name = '回答_組' + cur.a.group + '.csv';
+// ファイルとして書き出す（Excel用の CSV と記録帳で共有）
+window.saveFile = function(name, text, type){
   function plain(){
-    var blob = new Blob([text], {type: 'text/csv'}), u = URL.createObjectURL(blob), l = document.createElement('a');
+    var blob = new Blob([text], {type: type}), u = URL.createObjectURL(blob), l = document.createElement('a');
     l.href = u; l.download = name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 1000);
   }
   // claude.ai のアーティファクトの中では普通の保存が止められているので、downloads の仕組みで保存する（手元で開いたときは今までどおり）
   if (!(window.claude && typeof window.claude.use === 'function')) return plain();
   window.claude.use('downloads').then(function(dl){
     if (!dl) return plain();
-    return dl.save({filename: name, data: new Blob([text], {type: 'text/csv'})}).catch(function(){});
+    return dl.save({filename: name, data: new Blob([text], {type: type})}).catch(function(){});
   }, plain);
+};
+$('tl-csv').addEventListener('click', function(){
+  if (!cur) return;
+  window.saveFile('回答_組' + cur.a.group + '.csv', TALLY.csv(cur.a, eff()), 'text/csv');
 });
+// ===== 記録帳に足す（§12）：集計のあと。名簿にない番号はその評価者に印を付けて止める。同じ試験（同じ組・同じ種）は確かめて置き換える =====
+function ansText(r, v){ // 記録帳に残す答え（読める形）
+  var a = cur.a;
+  if (a.method === 'ranking') return r.cups.slice().sort(function(x, y){ return v[x.code] - v[y.code]; }).map(function(c){ return c.code; }).join(' → ');
+  if (a.method === 'scoring') return r.cups.map(function(c){ var o = []; for (var t = 0; t < a.items; t++) o.push(sv(v[c.code + '_' + t])); return c.code + ' ' + o.join('・'); }).join('／');
+  if (a.method === 'cata') return r.cups.map(function(c){ var x = v[c.code]; return c.code + ' ' + (x.length ? x.slice().sort(function(p, q){ return p - q; }).map(wn).join('・') : 'なし'); }).join('／');
+  return String(v);
+}
+function kTest(){
+  var a = cur.a, A = eff(), evs = TALLY.present(a, A), an = ana(), rows = [];
+  evs.forEach(function(ev){ evRows(ev).slice().sort(function(x, y){ return x.rep - y.rep; }).forEach(function(r){ var k = TALLY.keyOf(r), v = A[k], ok = TALLY.complete(a, r, v);
+    rows.push({ev: ev, pid: an ? pidOf(ev) || null : null, src: byPhone(k) ? 'phone' : 'paper', set: r.rep, ans: ok ? ansText(r, v) : null, correct: TALLY.correctOf(a, r, v)}); }); });
+  var verdict = [].map.call($('tl-res').querySelectorAll(':scope > h3, :scope > .tl-big'), function(e){ return e.textContent; }).join('／');
+  var name = CORE.METHODS[a.method].name + (a.ctrl ? '（対照あり）' : '');
+  return {tid: a.group + '-' + a.seed, date: today(), method: a.method, name: name, purpose: a.purpose || 'diff', samples: a.names.map(function(_, j){ return nm(j); }), items: a.itemNames || null, n: evs.length, verdict: verdict, rows: rows};
+}
+function kAdd(){
+  if (!cur || !window.KIROKU) return;
+  var need = $('tl-res').querySelector('.tl-kneed');
+  if (!KIROKU.book()){ if (need) need.hidden = false; msg('記録帳を開くか、新しく作ってください。'); return; }
+  if (need) need.hidden = true;
+  var bad = [];
+  if (ana()) TALLY.present(cur.a, eff()).forEach(function(ev){ var p = pidOf(ev); if (p && !KIROKU.person(p)) bad.push(ev); });
+  cur.bad = bad.length ? bad : null;
+  if (bad.length){ cur.ev = bad[0]; render(); msg('名簿にない番号があります（評価者' + bad.join('・') + '）。直すか、名無しにするか、名簿に足してください。'); return; }
+  render();
+  var t = kTest();
+  if (KIROKU.hasTest(t.tid) && !confirm('この試験は記録帳にもうあります。置き換えますか？')) return;
+  var how = KIROKU.putTest(t); KIROKU.save();
+  msg(how === 'replaced' ? '記録帳の試験を置き換えて、保存しました。' : '記録帳に足して、保存しました。');
+}
+function pidFixed(){ // 印のついた評価者を直したら印を外す（空＝名無し・名簿にある番号）
+  if (!cur.bad) return; var p = pidOf(cur.ev);
+  if (!p || (window.KIROKU && KIROKU.person(p))){ cur.bad = cur.bad.filter(function(e){ return e !== cur.ev; }); if (!cur.bad.length){ cur.bad = null; msg('もう一度「記録帳に足す」を押してください。'); } }
+  render();
+}
+$('tl-pid').addEventListener('input', function(){
+  if (!cur || !ana()) return;
+  var v = TALLY.norm(this.value).slice(0, 4); if (v !== this.value) this.value = v; // 小文字・全角は大文字に
+  cur.ans.pid = cur.ans.pid || {}; cur.ans.pid[cur.ev] = v; TALLY.saveAnswers(cur.ansKey, cur.ans);
+  if (cur.bad && cur.bad.indexOf(cur.ev) >= 0 && (!v || v.length === 4)) pidFixed();
+});
+$('tl-pclr').addEventListener('click', function(){ if (!cur) return; cur.ans.pid = cur.ans.pid || {}; cur.ans.pid[cur.ev] = ''; TALLY.saveAnswers(cur.ansKey, cur.ans); pidFixed(); });
+$('tl-padd').addEventListener('click', function(){
+  if (!cur || !window.KIROKU) return; var name = $('tl-pname').value.trim(), p = pidOf(cur.ev);
+  if (!name){ msg('名前を入れてください。'); return; }
+  if (!KIROKU.P_RE.test(p)){ msg('番号は4文字です（0・1・I・O は使いません）。'); return; }
+  KIROKU.addPerson(name, p); $('tl-pname').value = ''; pidFixed();
+});
+})();
+</script>
+<script id="kiroku">
+// ===== 記録帳（評価者ごと・試験ごとの記録。docs/method_selector.md §12） =====
+// 正はファイル1本（記録帳_YYYYMMDD.json）。端末の中（localStorage）には持たない。名前はこのファイルの中だけ（サーバー・スマホ・紙・URL に出さない）
+// 形：{kind:'sensory-kirokucho', v:1, people:[{id, name, consent, added}], tests:[{tid, date, method, name, purpose, samples, items, n, verdict, rows:[{ev, pid, src, set, ans, correct}]}]}
+var KIROKU = (function(){
+var CH = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ', P_RE = /^[2-9A-HJ-NP-Z]{4}$/, KIND = 'sensory-kirokucho', CONSENT = '研修内のみ';
+function blank(){ return {kind: KIND, v: 1, people: [], tests: []}; }
+function parse(text){ var b; try { b = JSON.parse(String(text).replace(/^﻿/, '')); } catch (e) { return null; }
+  return b && b.kind === KIND && b.v === 1 && Array.isArray(b.people) && Array.isArray(b.tests) ? b : null; }
+function stringify(b){ return JSON.stringify(b, null, 1); }
+function today(){ var d = new Date(), z = function(x){ return (x < 10 ? '0' : '') + x; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+function fileName(date){ return '記録帳_' + date.replace(/-/g, '') + '.json'; }
+function newId(b){ // 4文字（組と同じ32文字）・記録帳の中で重ならない
+  for (;;){ var u = new Uint8Array(4), s = ''; crypto.getRandomValues(u); for (var i = 0; i < 4; i++) s += CH[u[i] % 32];
+    if (!b.people.some(function(p){ return p.id === s; })) return s; } }
+// 評価者ごと：回数（その人が出た試験の数）と、正解がある手法の正解数／回答数（日付順）
+function perPerson(b){
+  var ts = b.tests.slice().sort(function(x, y){ return x.date < y.date ? -1 : x.date > y.date ? 1 : 0; });
+  return b.people.map(function(p){ var count = 0, hist = [];
+    ts.forEach(function(t){ var rs = t.rows.filter(function(r){ return r.pid === p.id; }); if (!rs.length) return; count++;
+      var js = rs.filter(function(r){ return r.correct === true || r.correct === false; }); if (js.length) hist.push({date: t.date, tid: t.tid, ok: js.filter(function(r){ return r.correct; }).length, n: js.length}); });
+    return {id: p.id, name: p.name, count: count, hist: hist}; });
+}
+var book = null, dirty = false, pending = null;
+if (typeof document === 'undefined' || !document.getElementById || !document.getElementById('rc-file') || !document.getElementById('rc-file').addEventListener) return {blank: blank, parse: parse, stringify: stringify, perPerson: perPerson, fileName: fileName, P_RE: P_RE}; // 画面の外（node の点検）は計算だけ
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function msg(t){ $('rc-msg').textContent = t || ''; }
+function touch(){ dirty = true; render(); }
+function person(id){ if (!book) return null; for (var i = 0; i < book.people.length; i++) if (book.people[i].id === id) return book.people[i]; return null; }
+function addPerson(name, id){ if (!book) return null; if (id && person(id)) return person(id);
+  var p = {id: id || newId(book), name: name, consent: CONSENT, added: today()}; book.people.push(p); touch(); return p; }
+function hasTest(tid){ return !!book && book.tests.some(function(t){ return t.tid === tid; }); }
+function putTest(t){ for (var i = 0; i < book.tests.length; i++) if (book.tests[i].tid === t.tid){ t.date = book.tests[i].date; book.tests[i] = t; touch(); return 'replaced'; } // 置き換えでも日付は最初のまま
+  book.tests.push(t); touch(); return 'added'; }
+function drop(){ return !dirty || confirm('保存していない変更があります。捨てますか？'); }
+function create(){ if (!drop()) return false; book = blank(); dirty = true; render(); msg('新しい記録帳を作りました。'); return true; }
+function save(){ if (!book) return; window.saveFile(fileName(today()), stringify(book), 'application/json'); dirty = false; render(); }
+function pick(cb){ if (!drop()) return; pending = cb || null; var f = $('rc-file'); f.value = ''; f.click(); }
+function load(text, name){ var b = parse(text); if (!b){ msg('記録帳のファイルではありません。'); pending = null; return false; }
+  book = b; dirty = false; render(); msg('開きました：' + name); var cb = pending; pending = null; if (cb) cb(); return true; }
+function tbl(head, rows){ return '<div class="tl-tw"><table class="tl-t"><thead><tr>' + head.map(function(x){ return '<th scope="col">' + esc(x) + '</th>'; }).join('') + '</tr></thead><tbody>'
+  + rows.map(function(r){ return '<tr>' + r.map(function(c, i){ return i === 0 ? '<th scope="row">' + esc(c) + '</th>' : '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>'; }
+function md(d){ return d.slice(5).replace('-', '/'); }
+function render(){
+  if (!$('rec')) return;
+  $('rc-body').hidden = !book; $('rc-save').disabled = !book; $('rc-lead').hidden = !!book; // 説明は開く前だけ
+  if (!book) return;
+  $('rc-people').innerHTML = book.people.length ? tbl(['名前', '番号', '足した日'], book.people.map(function(p){ return [p.name, p.id, p.added]; })) : '<p class="src">まだいません。</p>';
+  $('rc-per').innerHTML = book.people.length ? tbl(['名前', '回数', '正解／回答'], perPerson(book).map(function(x){ return [x.name, String(x.count), x.hist.map(function(h){ return md(h.date) + ' ' + h.ok + '／' + h.n; }).join('・') || '—']; })) : '';
+  var ts = book.tests.slice().sort(function(x, y){ return x.date < y.date ? -1 : x.date > y.date ? 1 : 0; });
+  $('rc-tests').innerHTML = ts.length ? ts.map(function(t){
+    var who = function(r){ var p = r.pid && person(r.pid); return p ? p.name : '名無し'; };
+    return '<details data-tid="' + esc(t.tid) + '"><summary>' + esc(t.date + '・' + t.name + '・' + t.n + '人') + '</summary><p class="src">' + esc('試料 ' + t.samples.join('・')) + '</p><p>' + esc(t.verdict) + '</p>'
+      + tbl(['評価者', '名前', 'セット', '答え', '正誤'], t.rows.map(function(r){ return [String(r.ev), who(r), String(r.set), r.ans === null ? '未回答' : r.ans, r.correct === true ? '正' : r.correct === false ? '誤' : '—']; })) + '</details>'; }).join('') : '<p class="src">まだありません。</p>';
+  if (dirty) msg('保存していない変更があります。'); else if ($('rc-msg').textContent === '保存していない変更があります。') msg('');
+}
+$('rc-file').addEventListener('change', function(){ var f = this.files && this.files[0]; if (!f){ pending = null; return; }
+  var rd = new FileReader(); rd.onload = function(){ load(rd.result, f.name); }; rd.onerror = function(){ msg('読めませんでした。'); pending = null; }; rd.readAsText(f); });
+$('rc-open').addEventListener('click', function(){ pick(null); });
+$('rc-new').addEventListener('click', create);
+$('rc-save').addEventListener('click', function(){ save(); msg('保存しました。'); });
+$('rc-add').addEventListener('click', function(){ var n = $('rc-name').value.trim(); if (!book) return; if (!n){ msg('名前を入れてください。'); return; }
+  var p = addPerson(n); $('rc-name').value = ''; msg(p.name + 'さんの番号は ' + p.id + ' です。'); });
+window.addEventListener('beforeunload', function(e){ if (dirty){ e.preventDefault(); e.returnValue = ''; return ''; } }); // 保存していない変更があるときは離れる前に確かめる
+render();
+return {blank: blank, parse: parse, stringify: stringify, perPerson: perPerson, fileName: fileName, P_RE: P_RE,
+  book: function(){ return book; }, dirty: function(){ return dirty; }, person: person, addPerson: addPerson, hasTest: hasTest, putTest: putTest, create: create, save: save, pick: pick, load: load, render: render};
 })();
 </script>
 <script id="tabsui">
 // タブ：選ぶ／紙を作る／打ち込む。一度に1つの段だけ見せる（画面だけ。印刷は今までどおり）
 (function(){
 if (typeof document === 'undefined') return;
-var $ = function(id){ return document.getElementById(id); }, ids = {pick: 'tab-pick', sheet: 'tab-sheet', tally: 'tl-open'};
+var $ = function(id){ return document.getElementById(id); }, ids = {pick: 'tab-pick', sheet: 'tab-sheet', tally: 'tl-open', rec: 'tab-rec'};
 if (!$('tabs')) return;
 window.tabGo = function(name){ document.body.setAttribute('data-tab', name); $('tab-msg').textContent = ''; Object.keys(ids).forEach(function(k){ $(ids[k]).setAttribute('aria-selected', String(k === name)); }); window.scrollTo && window.scrollTo(0, 0); };
 $('tab-pick').addEventListener('click', function(){ window.tabGo('pick'); });
+$('tab-rec').addEventListener('click', function(){ window.tabGo('rec'); if (window.KIROKU) KIROKU.render(); });
 $('tab-sheet').addEventListener('click', function(){
   if (!document.body.classList.contains('sheet-open')){ $('tab-msg').textContent = '「選ぶ」で手法を選び、「評価シートを作る」を押すと開けます。'; return; }
   window.tabGo('sheet');

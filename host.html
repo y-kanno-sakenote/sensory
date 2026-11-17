@@ -631,6 +631,15 @@ function tally(a0, ans){
   }
   return res;
 }
+// 分析型（目的が好みでない）：評価者に自分の番号を聞く（docs/method_selector.md §12）。好みは匿名のまま番号を聞かない
+function analytic(a){ return (a.purpose || 'diff') !== 'pref' && a.method !== 'paired_pref'; }
+// 正解がある手法のセットの正誤（3点・1:2点・2点（差）＝集計と同じ r.answer での判定／順位法（強さ）＝そのセットを強い順に全部正しく並べたら正解）。
+// 正解の無い手法・そろっていないセットは null
+function correctOf(a, r, v){
+  if (!r.answer || !complete(a, r, v)) return null;
+  if (a.method === 'ranking') return r.answer.every(function(c, i){ return v[c] === i + 1; });
+  return r.answer.indexOf(v) >= 0;
+}
 function csv(a, ans){
   function r0cols(a){ var h = []; for (var i = 0; i < a.names.length; i++) h.push((i + 1) + '番目の言葉'); return h; }
   var q = function(s){ s = String(s); if (/^[=+\-@]/.test(s) && !/^[-+]?\d+(\.\d+)?( [-+]?\d+(\.\d+)?)*$/.test(s)) s = "'" + s; /* 数値（−3 など）には付けない */ return '"' + s.replace(/"/g, '""') + '"'; }, rank = a.method === 'ranking', pref = a.method === 'paired_pref', sco = a.method === 'scoring', cat = a.method === 'cata', names = a.names, itemNames = (a.itemNames || []);
@@ -647,7 +656,7 @@ function csv(a, ans){
   return '﻿' + out.join('\r\n') + '\r\n';
 }
 return {paramsOf: paramsOf, recallOf: recallOf, parseRecall: parseRecall, norm: norm, rebuild: rebuild, saveSheet: saveSheet, loadSheet: loadSheet, saveAnswers: saveAnswers, loadAnswers: loadAnswers,
-  keyOf: keyOf, present: present, complete: complete, completeItem: completeItem, cochranQ: cochranQ, pairsControl: pairsControl, ctrlSummary: ctrlSummary, anova2: anova2, pairsBonferroni: pairsBonferroni, fUpper: fUpper, tTwo: tTwo, chi2Upper: chi2Upper, friedmanExact3P: friedmanExact3P, normInv: normInv, friedman: friedman, tally: tally, csv: csv};
+  keyOf: keyOf, present: present, complete: complete, completeItem: completeItem, cochranQ: cochranQ, pairsControl: pairsControl, ctrlSummary: ctrlSummary, anova2: anova2, pairsBonferroni: pairsBonferroni, fUpper: fUpper, tTwo: tTwo, chi2Upper: chi2Upper, friedmanExact3P: friedmanExact3P, normInv: normInv, friedman: friedman, tally: tally, csv: csv, analytic: analytic, correctOf: correctOf};
 })();
 if (typeof module !== 'undefined') module.exports = TALLY;
 </script>
@@ -667,7 +676,7 @@ var CH = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // SHEET.GROUP_CHARS と同じ（0/
 var ROOM_RE = /^[2-9A-HJ-NP-Z]{6}$/, KEY_RE = /^[2-9A-HJ-NP-Z]{10}$/;
 // データの形（database.rules.json と同じ決まり。README の表）：
 // groups/$g/{host: 作った uid, hostkey: 秘密（誰も読めない）, hosts/$uid: 秘密（係の端末）, n: 枠の数,
-//            slots/$e: 並び, q: 問い, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
+//            slots/$e: 並び, q: 問い, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t, p（自分の番号・分析型だけ）}}
 // slots/$e＝「開始セット＋向き|セット:コード,コード(,コード…)|…」（回る順・置き換えた後のコード・1セットに2〜8個）。中身・試料名は入れない
 var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9](,[0-9][0-9][0-9])(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?)+$/;
 // q＝問い（JSON の文字。手法・比べるもの・言葉・尺度。答えるのに要る文だけで、試料名・正解・中身は入れない）。無い組（host.html の組）は3点試験法
@@ -675,6 +684,8 @@ var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9](,[0-9][0-9][0-9])(
 //   コード=値.値,…（評点法＝比べるものの順の点・CATA＝選んだ言葉の番号1〜。何も無いときは「コード=」＝当てはまるものなし）
 var ANS_V = '(-[1-3]|1[0-9]|2[0-5]|[0-9])', ANS_E = '[0-9][0-9][0-9](=(' + ANS_V + '(\\.' + ANS_V + ')*)?)?', ANS_S = '[0-9][0-9]?:' + ANS_E + '(,' + ANS_E + ')*';
 var ANS_RE = new RegExp('^' + ANS_S + '(\\|' + ANS_S + ')*$'), ANS_MAX = 8000, Q_MAX = 4000;
+// answers/$e/p＝自分の番号（4文字・分析型の組で q に id:1 があるときだけ。docs/method_selector.md §12）。ルールと同じ書き方（くり返しを並べる）
+var P_RE = /^[2-9A-HJ-NP-Z][2-9A-HJ-NP-Z][2-9A-HJ-NP-Z][2-9A-HJ-NP-Z]$/;
 var log = []; // この端末が受け取ったデータの控え（点検用。画面には出さない）
 function rec(v){ try { log.push(JSON.parse(JSON.stringify(v === undefined ? null : v))); } catch (e) {} return v; }
 function rand(len){ var b = new Uint8Array(len), s = ''; crypto.getRandomValues(b); for (var i = 0; i < len; i++) s += CH[b[i] % 32]; return s; } // 256÷32 で偏りなし
@@ -718,9 +729,10 @@ function Local(){
   this.getQ = function(g){ var d = read(g); if (!d) return Promise.resolve(null);
     if (!((d.byuid || {})[me.uid] || isHost(d))) return Promise.reject(denied()); // 問いは番号を取った人と係だけ（ルールと同じ）
     return Promise.resolve(d.q || null); };
-  this.send = function(g, e, a){
+  this.send = function(g, e, a, onLate, p){
     if (navigator.onLine === false) return Promise.reject(offlineErr());
-    return locked(g, function(d){ if (!d || !d.claims || d.claims[e] !== me.uid) throw denied(); d.answers = d.answers || {}; d.answers[e] = {a: a, t: Date.now()}; return {write: d, value: true}; });
+    if (p !== undefined && !P_RE.test(p)) return Promise.reject(denied()); // 番号の形はルールと同じ（4文字）
+    return locked(g, function(d){ if (!d || !d.claims || d.claims[e] !== me.uid) throw denied(); d.answers = d.answers || {}; d.answers[e] = {a: a, t: Date.now()}; if (p !== undefined) d.answers[e].p = p; return {write: d, value: true}; });
   };
   this.onConn = function(cb){ var f = function(){ cb(navigator.onLine !== false); }; window.addEventListener('online', f); window.addEventListener('offline', f); f(); };
 }
@@ -778,8 +790,9 @@ function Fire(){
   this.getSlot = function(g, e){ return G(g).child('slots/' + e).get().then(function(s){ return s.val(); }); };
   this.getQ = function(g){ return G(g).child('q').get().then(function(s){ return s.val(); }); };
   // 送る：つながっていないと SDK は書き込みを溜めて後で送るので、6秒で届かなければ「送れていない」と返し、届いたら onLate を呼ぶ
-  this.send = function(g, e, a, onLate){
-    var done = false, p = G(g).child('answers/' + e).set({a: a, t: firebase.database.ServerValue.TIMESTAMP}).then(function(){ done = true; return true; });
+  this.send = function(g, e, a, onLate, pid){
+    var v = {a: a, t: firebase.database.ServerValue.TIMESTAMP}; if (pid !== undefined) v.p = pid; // p＝自分の番号（分析型の組だけ）
+    var done = false, p = G(g).child('answers/' + e).set(v).then(function(){ done = true; return true; });
     var t = new Promise(function(_, ng){ setTimeout(function(){ if (!done) ng(offlineErr()); }, connected ? 6000 : 300); });
     p.then(function(){ if (onLate) onLate(); }, function(){});
     return Promise.race([p, t]);
@@ -789,7 +802,7 @@ function Fire(){
 
 var impl = LOCAL ? new Local() : new Fire(), ready = null;
 return {
-  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, ANS_MAX: ANS_MAX, Q_MAX: Q_MAX, CH: CH, log: log,
+  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, P_RE: P_RE, ANS_MAX: ANS_MAX, Q_MAX: Q_MAX, CH: CH, log: log,
   randRoom: function(){ return rand(6); }, randKey: function(){ return rand(10); }, // 秘密＝32文字×10＝50ビット（crypto）
   init: function(){ return ready || (ready = impl.init().then(function(){ return {uid: impl.uid, mode: impl.mode}; })); }, // 何度呼んでも1回だけ
   create: function(g, key, n, slots, q){ return impl.create(g, key, n, slots, q); }, // q（問い）は無くてもよい（host.html は3点だけなので置かない）
@@ -799,7 +812,7 @@ return {
   getSlot: function(g, e){ return impl.getSlot(g, e).then(rec); },
   getQ: function(g){ return impl.getQ(g).then(rec); },
   remove: function(g){ return impl.remove(g); },
-  send: function(g, e, a, onLate){ return impl.send(g, e, a, onLate); },
+  send: function(g, e, a, onLate, p){ return impl.send(g, e, a, onLate, p); }, // p＝自分の番号（無ければ送らない）
   onConn: function(cb){ return impl.onConn(cb); }
 };
 })();
