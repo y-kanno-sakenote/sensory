@@ -87,51 +87,51 @@ var METHODS = {
   triangle:{name:'3点試験法', short:'3つのうち1つだけ違うものを選ぶ', samples:'2種類（3個を出す）', p0:1/3, discrim:true,
     fit:'AとBに違いがあるかを、どこが違うかを決めずに確かめたい', unfit:null,
     howto:['組合せ AAB・ABA・ABB・BAA・BBA・BAB の6種類をすべて使い、人に割り当てる（p.162）','横一列ではなく、円形で方向性のない並べ方にする（p.163）'],
-    refs:[K+' p.162「異なる1個を選ぶように指示する」「偶然の確率1/3」（当て推量の確率）','同 p.163 二項分布で検定']},
+    refs:[K+' p.162（異なる1個を選ばせる。当て推量の確率1/3）','同 p.163 二項分布で検定']},
   duotrio:{name:'1:2点試験法', short:'見本を覚えてから、2つのどちらが見本と同じかを選ぶ', samples:'2種類（見本＋1組）', p0:1/2, discrim:true,
     fit:'違いの中身が分からないまま、全体として違うかを見たい', unfit:null,
     howto:['先に見本を出して特徴を覚えてもらい、その後に2つを出す（p.164）'],
-    refs:[K+' p.164「どのような違いがあるかが不明な場合でも用いることができる」「片側検定となる」（当て推量の確率1/2）']},
+    refs:[K+' p.164（違いの中身が分からなくても使える。片側検定。当て推量の確率1/2）']},
   paired_diff:{name:'2点試験法（差）', short:'2つのどちらが甘いかなどを選ぶ', samples:'2', p0:1/2, discrim:true,
     fit:'甘さなど、決めた1つの性質がどちらで強いかを見たい', unfit:'違いの中身が分からないとき（そのときは1:2点試験法＝p.164）',
     howto:['「どちらが甘い」のように、問う性質を1つに決めてから出す（p.159）'],
-    refs:[K+' p.159「刺激の量的な違いを判断させる」「片側の二項検定により検定する」（当て推量の確率1/2）']},
+    refs:[K+' p.159（量の違いを判断させる。片側の二項検定。当て推量の確率1/2）']},
   paired_pref:{name:'2点試験法（好み）', short:'2つのどちらが好きかを選ぶ', samples:'2', p0:1/2, discrim:false, twoSided:true,
     fit:'2つのどちらが好まれるかを見たい', unfit:'違いの識別（好みには客観的な順位がない＝p.159）',
     howto:['好ましい方を1つ選んでもらう（p.159）'],
-    refs:[K+' p.159「両側の二項検定により検定する」','同 p.161「2点嗜好法は両側検定」']},
+    refs:[K+' p.159（両側の二項検定）','同 p.161（2点嗜好法は両側検定）']},
   ranking:{name:'順位法', short:'強さや好みの順に並べる', samples:'数個（p.169）', discrim:false,
     fit:'濃度など順のある試料を並べてもらう（p.169）／好みの順位に差があるかを見る（p.171）', unfit:'程度の大きさを数で扱いたいとき（点数の方が分析の幅が広がる＝p.78）',
     howto:['試料はランダムな順に出す（p.169）','同じ順位を許すかどうかを先に決める（p.171）'],
-    refs:[K+' p.169「数個の試料をランダムに提示し、それらを濃度の順に並べられるか」（スピアマンの順位相関）','同 p.171「試料間に順位の差があるかどうかを検定」（フリードマンの順位検定）']},
+    refs:[K+' p.169（ランダムに出した数個の試料を濃度の順に並べる。スピアマンの順位相関）','同 p.171（試料の間の順位の差を検定。フリードマンの順位検定）']},
   scoring:{name:'評点法', short:'強さや好みを点数でつける', samples:'1種以上（p.194）', discrim:false,
     fit:'強さや好みの程度を点数で比べたい', unfit:null,
     howto:['点数の目盛りにどこまで言葉を添えるかを決める（全部／一部／両端だけ＝p.195）','真ん中の点に答えが集まりやすい（p.78）'],
-    refs:[K+' p.194「数値尺度により…点数によって評価する」','同 p.78「採点法（評点法）」']},
+    refs:[K+' p.194（数値の尺度で点数をつける）','同 p.78（採点法＝評点法）']},
   cata:{name:'CATA法', short:'当てはまる言葉にチェックをつける', samples:'複数（例は4種類＝p.181）', discrim:false,
     fit:'言葉のチェックリストで特徴を出し、言葉ごとに試料の差を見る', unfit:null,
     howto:['同じ人に全試料を評価してもらうか、試料ごとに別の人にするかを先に決める（集計のしかたが変わる＝p.181）'],
-    refs:[K+' p.180「試料の特徴を表すと思う用語をパネリストにチェックしてもらい」','同 p.181「コクランのQ検定」']},
+    refs:[K+' p.180（特徴に当てはまる用語にチェックしてもらう）','同 p.181（コクランのQ検定）']},
   hedonic:{name:'評点法（9段階の好き嫌い）', short:'「非常に好き」〜「非常に嫌い」の9段階で好ましさに点をつける', samples:'1種以上（p.194）', discrim:false, sheet:'scoring', sheetScale:3,
     fit:'試料ごとの好ましさの程度を点数で比べたい', unfit:null,
     howto:['好みや受け入れやすさを聞くときは、9段階の好き嫌いの尺度がよく使われる（p.117）','両端の「非常に好き」「非常に嫌い」に答えが出にくい傾向があるとの指摘もある。また、目盛りが等間隔とは限らない（p.118）'],
-    refs:[K+' p.117「9段階嗜好尺度が用いられることが多い」・表3-8（井上の用語：非常に好き〜非常に嫌い）','同 p.118「尺度の等間隔性が保証されないことがあるため、データを統計解析する際に制約がある」','同 p.146-149（二元配置の分散分析）']},
+    refs:[K+' p.117（9段階嗜好尺度がよく使われる）・表3-8（井上の用語：非常に好き〜非常に嫌い）','同 p.118（目盛りが等間隔とは限らず、統計解析に制約がある）','同 p.146-149（二元配置の分散分析）']},
   jar:{name:'JAR尺度（ちょうどよさを聞く方法）', short:'性質ごとに「弱すぎる〜ちょうどよい〜強すぎる」で聞きます。', samples:'1種以上', discrim:false, nosheet:true,
     fit:'甘さなどが「ちょうどよい」か、強すぎ・弱すぎで好まれにくくなっているかを知りたい', unfit:null,
     howto:['5段階（1＝弱すぎる〜3＝ちょうどよい〜5＝強すぎる）で聞く例がある','ペナルティ分析：「ちょうどよい」と答えた人に比べて、強すぎ・弱すぎと答えた人で好ましさがどれだけ下がるかを見る','判定の目安（何%以上の回答があれば扱うか）は手元の資料にありません'],
-    refs:[NI+' p.156「5段階（1＝弱すぎる〜3＝ちょうどよい〜5＝強すぎる）の JAR 尺度で評価させた」・p.157（ペナルティ分析）']},
+    refs:[NI+' p.156（5段階の JAR 尺度で評価した例）・p.157（ペナルティ分析）']},
   scoring_ctrl:{name:'評点法（対照あり）', short:'対照と、日数などを置いた試料に点をつけ、対照と比べる', samples:'3以上（1つ目が対照）', discrim:false, sheet:'scoring', sheetCtrl:true,
     fit:'劣化・保存試験のように、対照と比べてどの試料から変わったかを見たい', unfit:null,
     howto:['1つ目の試料を対照にする（紙にはコードだけが出るので、評価する人には対照と分からない）','同じ人が全部の試料を同じ回に評価する前提です（対照を保存して最後にまとめて評価する形）。日ごとに別々に評価した結果はこの計算では扱えません。','差があるときは、対照とほかの試料の組だけを比べる'],
-    refs:[K+' p.194（評点法）','同 p.153「②ダネットの方法 (Dunnett\'s test) 複数サンプルのうち、基準 (対照)となるものが1つあり、その基準サンプルと他のサンプルの間だけで検定を行う場合に利用する」','同 p.152-153（ボンフェローニの方法：1対当たりの有意水準を検定する数で割る）','同 p.144（対応のある t 検定）','同 p.146-149（二元配置の分散分析）']},
+    refs:[K+' p.194（評点法）','同 p.153（ダネットの方法：対照と他の試料の間だけを検定する）','同 p.152-153（ボンフェローニの方法：1対当たりの有意水準を検定する数で割る）','同 p.144（対応のある t 検定）','同 p.146-149（二元配置の分散分析）']},
   sd:{name:'SD法', short:'製品の印象（高級な―庶民的な など）が分かります。', samples:'1種以上', discrim:false, nosheet:true,
     fit:'製品の印象を測りたい', unfit:'属性を特定する方法としては向かない（p.199）',
     howto:['反対の意味の言葉の組（高級な―庶民的な など）で印象を聞く','意味尺度どうしの解析にはプロフィール分析や因子分析が使われる（p.199・p.230-235）','だれに頼むかはテキストに書かれていない'],
-    refs:[K+' p.199「製品の印象を測定する方法といえる」「意味尺度間の解析に、プロフィール分析や因子分析が使われる」','同 p.230-235（因子分析）']},
+    refs:[K+' p.199（製品の印象を測る方法。解析にはプロフィール分析や因子分析）','同 p.230-235（因子分析）']},
   qda:{name:'QDA法', short:'用語集の言葉ごとに、強さを点数でくわしくつける', samples:'1種以上', discrim:false, sheet:'scoring',
     fit:'試料の特徴を、言葉ごとの強さの数字でくわしく比べたい', unfit:null,
     howto:['5名以上の訓練した人か熟練した人で行う（p.196）','先に用語集を作っておく（p.196）','紙と集計は、評点法（比べるものを複数）で代わりにできる'],
-    refs:[K+' p.196「記述的試験法により確立された用語集を用いて、その感覚を強度として測定し、数値化する」「パネルは5名以上の訓練パネルまたは熟練者で行い」']}
+    refs:[K+' p.196（用語集の言葉ごとに強さを数値化する。5名以上の訓練した人か熟練者）']}
 };
 var RULES = [ // 精査した決定木（docs/tree_review.md・2026-11-09）。旧規則との対応は docs/method_selector.md §4
   {id:'U1', goal:'pref', q2:'pair', panel:'any', pick:['paired_pref'], reason:'2つのうち、どちらが好まれるかが分かります。', refs:[K+' p.159・p.161（両側の二項検定）']},
@@ -165,9 +165,9 @@ var NOTES = {
 };
 // 識別試験以外の人数の目安（目的と評価者で選ぶ）
 var PEOPLE = {
-  pref:{min:50, text:'好みを聞く人数は諸説ありますが、予備的な試験でも50人ほど必要と言われます。', ref:HY+' p.40「一般的に，予備試験レベルでも50人程度は必要と言われている」／'+KU+' p.743「嗜好型では数十名から数百名のパネリストが対象となる」／'+K+' p.91「予備試験レベルでも50〜60人程度は必要だと言われている」「少なくとも60人以上…推奨」（ただし「数字上の誤差を小さくすること自体は…結論の妥当性を増すものではない」）'},
-  trained:{min:10, text:'訓練した人なら、10〜20人ほどのことが多いとされます（p.86）。', ref:K+' p.86「おおよそ10人程度から20人程度であることが多い」'},
-  untrained:{min:20, text:'訓練していない人の場合、近い手法（格付け法）で強弱を測るときの目安は20人以上です（p.177）。', ref:K+' p.177 格付け法「20以上の訓練されていないパネル」（好みの程度なら2試料50名以上・3試料100名以上）'}
+  pref:{min:50, text:'好みを聞く人数は諸説ありますが、予備的な試験でも50人ほど必要と言われます。', ref:HY+' p.40（予備試験でも50人程度）／'+KU+' p.743（嗜好型は数十〜数百名）／'+K+' p.91（予備試験でも50〜60人程度。ISO は60人以上を推奨。ただし人数を増やすだけで結論が妥当になるわけではない）'},
+  trained:{min:10, text:'訓練した人なら、10〜20人ほどのことが多いとされます（p.86）。', ref:K+' p.86（10〜20人程度が多い）'},
+  untrained:{min:20, text:'訓練していない人の場合、近い手法（格付け法）で強弱を測るときの目安は20人以上です（p.177）。', ref:K+' p.177 格付け法（訓練していない人なら20以上）（好みの程度なら2試料50名以上・3試料100名以上）'}
 };
 // カードの見える所の「だれに・何人」（tree_review.md 手法のカード）
 var WHO = {pref:{text:'調べたい相手（お客さん）を代表する人で。予備的な試験でも50人ほど、本格的には数百人です。', min:50},
@@ -237,7 +237,7 @@ if (typeof module !== 'undefined') module.exports = CORE;
 var SHEET = (function(){
 var METHODS = {triangle:{k:2}, paired_diff:{k:2}, paired_pref:{k:2}, duotrio:{k:2}, ranking:{k:null}, scoring:{k:null}, cata:{k:null}};
 var MAX_WORDS = 25; // CATA の言葉の数の上限：1回分が1枚に入る最大（紙の実測で 25 は入り 30 は入らない・§9.2）
-// 評点法の尺度（官能評価士テキスト p.194「1〜5、-3〜+3」・p.195 ②の 0〜10 点）。既定は 0（1〜5）。言葉は両端だけ
+// 評点法の尺度（官能評価士テキスト p.194 の 1〜5・-3〜+3・p.195 ②の 0〜10 点）。既定は 0（1〜5）。言葉は両端だけ
 var SCALES = [{label:'5段階（1〜5）', vals:[1, 2, 3, 4, 5]}, {label:'7段階（−3〜+3）', vals:[-3, -2, -1, 0, 1, 2, 3]}, {label:'11段階（0〜10）', vals:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
   // 9段階の好き嫌い（官能評価士テキスト p.117 表3-8 の井上の用語。1＝非常に嫌い〜9＝非常に好き）。目盛りが等間隔とは限らない（p.118）
   {label:'9段階（好き嫌い）', vals:[1, 2, 3, 4, 5, 6, 7, 8, 9], words:['非常に嫌い', 'とても嫌い', 'やや嫌い', 'わずかに嫌い', '好きでも嫌いでもない', 'わずかに好き', 'やや好き', 'とても好き', '非常に好き']}], MAX_ITEMS = 5;
@@ -565,7 +565,7 @@ function tallyScoring(a, ans, A){
     if (X.length >= 2){ var av = anova2(Xm); it.av = av; it.means = av.means; it.p = av.sample.p; it.sig5 = le(it.p, A); it.sig1 = le(it.p, 0.01);
       if (a.ctrl){ it.ctrl = true; var pc = k === 2 ? {alpha: A, pairs: [{i: 0, j: 1, diff: av.means[1] - av.means[0], p: av.sample.p, sig: it.sig5, sig1: it.sig1}]} : pairsControl(av.cell, A); it.ctrlAlpha = pc.alpha; it.ctrlPairs = pc.pairs; it.pairs = pc.pairs.filter(function(q){ return q.sig; }); if (k > 2){ it.allPairs = pc.pairs; it.pairAlpha = pc.alpha; } } // 分散分析の結果にかかわらず比べる（関門を外す＝kanno p.153）
       else if (k === 2) it.pairs = it.sig5 ? [{i: 0, j: 1, diff: av.means[0] - av.means[1], sig: true, sig1: it.sig1}] : [];
-      else { var pb = pairsBonferroni(av.cell, A); it.allPairs = pb.pairs; it.pairAlpha = pb.alpha; it.pairs = pb.pairs.filter(function(q){ return q.sig; }); } // allPairs＝判定しなかった組も含めた全部の組（レポートの表に使う。判定は今までどおり） // 関門なし：分散分析の結果にかかわらず2つずつ（kanno p.153「先に分散分析で有意差を出してから行う必要はない」）
+      else { var pb = pairsBonferroni(av.cell, A); it.allPairs = pb.pairs; it.pairAlpha = pb.alpha; it.pairs = pb.pairs.filter(function(q){ return q.sig; }); } // allPairs＝判定しなかった組も含めた全部の組（レポートの表に使う。判定は今までどおり） // 関門なし：分散分析の結果にかかわらず2つずつ（kanno p.153（分散分析で差が出てからでなくてよい））
     } else { it.p = null; it.sig5 = it.sig1 = false; it.pairs = []; }
     items.push(it);
   }
@@ -654,11 +654,12 @@ if (typeof module !== 'undefined') module.exports = TALLY;
 <!-- BUILD:tallycore END -->
 <!-- BUILD:store BEGIN -->
 <script id="store">
-// ===== 通信層（host.html と panel.html で共有。build.py が両方のページの BUILD:store の間へ写す。直すのはこのファイルだけ） =====
+// ===== 通信層（host.html・panel.html・selector.html で共有。build.py が3枚の BUILD:store の間へ写す。直すのはこのファイルだけ） =====
 // Firebase の設定は空の雛形。オーナーがプロジェクトを作ったら、コンソールの「ウェブアプリの設定」の値を入れる（README.md）。
 // 空のまま、または URL に ?local=1 があるときは、同じ端末の別タブ同士だけで動く疑似通信（BroadcastChannel＋localStorage）を使う。
 var FIREBASE_CONFIG = {apiKey: 'AIzaSyCOve6rL8oHlQsICBOzp4EMpcOWmvyxYj0', authDomain: 'sensory-phone.firebaseapp.com', databaseURL: 'https://sensory-phone-default-rtdb.asia-southeast1.firebasedatabase.app', projectId: 'sensory-phone', appId: '1:949669466785:web:b4c62959be942cad5a56e0'};
 var STORE = (function(){
+if (typeof window === 'undefined' || typeof location === 'undefined') return null; // ブラウザの外（node の点検で selector.html の全スクリプトを読むとき）は何もしない
 var SDK = 'https://www.gstatic.com/firebasejs/10.14.1/'; // compat 版・固定
 var QS = new URLSearchParams(location.search);
 var FORCED = QS.get('local') === '1', LOCAL = FORCED || !FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.databaseURL;

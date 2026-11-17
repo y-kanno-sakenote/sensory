@@ -51,11 +51,12 @@ h1{font-size:1.15rem;margin:.2em 0;color:var(--sub);font-weight:600}
 <!-- 中核（SHEET・TALLY）は入れない：この画面が受け取るのは自分のコードの並びだけで、中身を割り出す処理を持たない -->
 <!-- BUILD:store BEGIN -->
 <script id="store">
-// ===== 通信層（host.html と panel.html で共有。build.py が両方のページの BUILD:store の間へ写す。直すのはこのファイルだけ） =====
+// ===== 通信層（host.html・panel.html・selector.html で共有。build.py が3枚の BUILD:store の間へ写す。直すのはこのファイルだけ） =====
 // Firebase の設定は空の雛形。オーナーがプロジェクトを作ったら、コンソールの「ウェブアプリの設定」の値を入れる（README.md）。
 // 空のまま、または URL に ?local=1 があるときは、同じ端末の別タブ同士だけで動く疑似通信（BroadcastChannel＋localStorage）を使う。
 var FIREBASE_CONFIG = {apiKey: 'AIzaSyCOve6rL8oHlQsICBOzp4EMpcOWmvyxYj0', authDomain: 'sensory-phone.firebaseapp.com', databaseURL: 'https://sensory-phone-default-rtdb.asia-southeast1.firebasedatabase.app', projectId: 'sensory-phone', appId: '1:949669466785:web:b4c62959be942cad5a56e0'};
 var STORE = (function(){
+if (typeof window === 'undefined' || typeof location === 'undefined') return null; // ブラウザの外（node の点検で selector.html の全スクリプトを読むとき）は何もしない
 var SDK = 'https://www.gstatic.com/firebasejs/10.14.1/'; // compat 版・固定
 var QS = new URLSearchParams(location.search);
 var FORCED = QS.get('local') === '1', LOCAL = FORCED || !FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.databaseURL;
