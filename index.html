@@ -90,6 +90,7 @@ ul{margin:.2em 0;padding-left:1.2em}
 #tally .tl-set{border-top:1px solid var(--line);padding:8px 0}
 #tally .tl-lab{font-weight:600;color:var(--accent)}
 #sh-phone[aria-disabled="true"]{opacity:.45}
+#sh-names input[readonly],#sh-names textarea[readonly]{opacity:.6}
 .ph-ptitle{display:none}
 #sh-qr{background:#fff;padding:12px;width:fit-content;border-radius:8px;margin:8px auto}
 #sh-qr img,#sh-qr canvas{display:block;width:min(80vw,320px);height:auto}
@@ -233,6 +234,7 @@ body:not(.sheet-open) #tab-sheet{opacity:.45}
 <div class="screen-only">
 <h2 id="sh-title">評価シート</h2>
 <div id="sh-names"></div>
+<p class="src" id="sh-qlock" hidden>言葉や条件を直すときは、この組を消してから。</p>
 <div class="row" id="sh-deskrow">1人が回るセットの数（机に並べる数） <select id="sh-desks" aria-label="1人が回るセットの数"></select></div>
 <div class="row">刷る人数 <select id="sh-blocks" aria-label="刷る人数"></select></div>
 <details id="sh-more"><summary>くわしい設定</summary>
@@ -858,11 +860,14 @@ var CH = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // SHEET.GROUP_CHARS と同じ（0/
 var ROOM_RE = /^[2-9A-HJ-NP-Z]{6}$/, KEY_RE = /^[2-9A-HJ-NP-Z]{10}$/;
 // データの形（database.rules.json と同じ決まり。README の表）：
 // groups/$g/{host: 作った uid, hostkey: 秘密（誰も読めない）, hosts/$uid: 秘密（係の端末）, n: 枠の数,
-//            slots/$e: 並び, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
-// slots/$e＝「開始セット＋向き|セット:コード,コード,コード|…」（回る順・置き換えた後のコード）。中身（どれが違う1つか）は入れない
-var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9],[0-9][0-9][0-9],[0-9][0-9][0-9])+$/;
-// answers/$e/a＝「セット:選んだコード|…」
-var ANS_RE = /^[0-9][0-9]?:[0-9][0-9][0-9](\|[0-9][0-9]?:[0-9][0-9][0-9])*$/;
+//            slots/$e: 並び, q: 問い, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
+// slots/$e＝「開始セット＋向き|セット:コード,コード(,コード…)|…」（回る順・置き換えた後のコード・1セットに2〜8個）。中身・試料名は入れない
+var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9](,[0-9][0-9][0-9])(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?)+$/;
+// q＝問い（JSON の文字。手法・比べるもの・言葉・尺度。答えるのに要る文だけで、試料名・正解・中身は入れない）。無い組（host.html の組）は3点試験法
+// answers/$e/a＝「セット:答え|…」。答え＝コード（3点・2点・1:2点）／コード,コード,…（順位法＝1位から）／
+//   コード=値.値,…（評点法＝比べるものの順の点・CATA＝選んだ言葉の番号1〜。何も無いときは「コード=」＝当てはまるものなし）
+var ANS_V = '(-[1-3]|1[0-9]|2[0-5]|[0-9])', ANS_E = '[0-9][0-9][0-9](=(' + ANS_V + '(\\.' + ANS_V + ')*)?)?', ANS_S = '[0-9][0-9]?:' + ANS_E + '(,' + ANS_E + ')*';
+var ANS_RE = new RegExp('^' + ANS_S + '(\\|' + ANS_S + ')*$'), ANS_MAX = 8000, Q_MAX = 4000;
 var log = []; // この端末が受け取ったデータの控え（点検用。画面には出さない）
 function rec(v){ try { log.push(JSON.parse(JSON.stringify(v === undefined ? null : v))); } catch (e) {} return v; }
 function rand(len){ var b = new Uint8Array(len), s = ''; crypto.getRandomValues(b); for (var i = 0; i < len; i++) s += CH[b[i] % 32]; return s; } // 256÷32 で偏りなし
@@ -888,7 +893,7 @@ function Local(){
   function view(d){ return isHost(d) ? {claims: d.claims || null, answers: d.answers || null} : null; } // 係が読めるのは claims と answers（hostkey は誰も読めない）
   function fire(g){ (watchers[g] || []).forEach(function(cb){ cb(view(read(g))); }); }
   this.init = function(){ return Promise.resolve(me); };
-  this.create = function(g, key, n, slots){ return locked(g, function(d){ if (d && d.host) throw new Error('exists'); var h = {}; h[me.uid] = key; return {write: {host: me.uid, hostkey: key, hosts: h, n: n, slots: slots}}; }); };
+  this.create = function(g, key, n, slots, q){ return locked(g, function(d){ if (d && d.host) throw new Error('exists'); var h = {}, w; h[me.uid] = key; w = {host: me.uid, hostkey: key, hosts: h, n: n, slots: slots}; if (q) w.q = q; return {write: w}; }); };
   this.register = function(g, key){ return locked(g, function(d){ if (!d || !d.hostkey) return {value: null}; if (d.hostkey !== key) throw denied(); d.hosts = d.hosts || {}; d.hosts[me.uid] = key; return {write: d, value: true}; }); };
   this.watch = function(g, cb){ (watchers[g] = watchers[g] || []).push(cb); var c = chan(g); if (c) c.addEventListener('message', function(){ cb(view(read(g))); });
     window.addEventListener('storage', function(ev){ if (ev.key === PRE + g) cb(view(read(g))); }); cb(view(read(g))); };
@@ -903,6 +908,9 @@ function Local(){
   this.getSlot = function(g, e){ var d = read(g); if (!d || !d.slots) return Promise.resolve(null);
     if (!((d.claims || {})[e] === me.uid || isHost(d))) return Promise.reject(denied()); // 自分の番号の並びだけ（係は全部）
     return Promise.resolve(d.slots[e] || null); };
+  this.getQ = function(g){ var d = read(g); if (!d) return Promise.resolve(null);
+    if (!((d.byuid || {})[me.uid] || isHost(d))) return Promise.reject(denied()); // 問いは番号を取った人と係だけ（ルールと同じ）
+    return Promise.resolve(d.q || null); };
   this.send = function(g, e, a){
     if (navigator.onLine === false) return Promise.reject(offlineErr());
     return locked(g, function(d){ if (!d || !d.claims || d.claims[e] !== me.uid) throw denied(); d.answers = d.answers || {}; d.answers[e] = {a: a, t: Date.now()}; return {write: d, value: true}; });
@@ -924,10 +932,10 @@ function Fire(){
   };
   function G(g){ return db.ref('groups/' + g); }
   // 作る：host を取ってから、hostkey・自分の hosts・枠の数・並びを1回の更新で（ルールは同じ更新の中の hostkey と比べる）
-  this.create = function(g, key, n, slots){
+  this.create = function(g, key, n, slots, q){
     return G(g).child('host').transaction(function(cur){ return cur ? undefined : me.uid; }).then(function(r){
       if (!r.committed || r.snapshot.val() !== me.uid) throw new Error('exists');
-      var u = {hostkey: key, n: n, slots: slots}; u['hosts/' + me.uid] = key;
+      var u = {hostkey: key, n: n, slots: slots}; if (q) u.q = q; u['hosts/' + me.uid] = key;
       return G(g).update(u);
     });
   };
@@ -961,6 +969,7 @@ function Fire(){
   // 組をまるごと消す：ルールが係（hosts/<自分>）だけに通す。先に見張りを外す（消したあとは answers を読めなくなる）
   this.remove = function(g){ G(g).child('claims').off(); G(g).child('answers').off(); return G(g).remove().then(function(){ return true; }, function(){ throw denied(); }); };
   this.getSlot = function(g, e){ return G(g).child('slots/' + e).get().then(function(s){ return s.val(); }); };
+  this.getQ = function(g){ return G(g).child('q').get().then(function(s){ return s.val(); }); };
   // 送る：つながっていないと SDK は書き込みを溜めて後で送るので、6秒で届かなければ「送れていない」と返し、届いたら onLate を呼ぶ
   this.send = function(g, e, a, onLate){
     var done = false, p = G(g).child('answers/' + e).set({a: a, t: firebase.database.ServerValue.TIMESTAMP}).then(function(){ done = true; return true; });
@@ -973,14 +982,15 @@ function Fire(){
 
 var impl = LOCAL ? new Local() : new Fire(), ready = null;
 return {
-  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, CH: CH, log: log,
+  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, ANS_MAX: ANS_MAX, Q_MAX: Q_MAX, CH: CH, log: log,
   randRoom: function(){ return rand(6); }, randKey: function(){ return rand(10); }, // 秘密＝32文字×10＝50ビット（crypto）
   init: function(){ return ready || (ready = impl.init().then(function(){ return {uid: impl.uid, mode: impl.mode}; })); }, // 何度呼んでも1回だけ
-  create: function(g, key, n, slots){ return impl.create(g, key, n, slots); },
+  create: function(g, key, n, slots, q){ return impl.create(g, key, n, slots, q); }, // q（問い）は無くてもよい（host.html は3点だけなので置かない）
   register: function(g, key){ return impl.register(g, key); },
   watch: function(g, cb){ return impl.watch(g, function(d){ cb(rec(d)); }); },
   claim: function(g){ return impl.claim(g).then(rec); },
   getSlot: function(g, e){ return impl.getSlot(g, e).then(rec); },
+  getQ: function(g){ return impl.getQ(g).then(rec); },
   remove: function(g){ return impl.remove(g); },
   send: function(g, e, a, onLate){ return impl.send(g, e, a, onLate); },
   onConn: function(cb){ return impl.onConn(cb); }
@@ -989,15 +999,16 @@ return {
 </script>
 <!-- BUILD:store END -->
 <script id="phonekit">
-// ===== スマホで答える（3点試験法・机に並べる方式だけ）。phone/host.html の start・hide・slotOf・answersOf と同じ考え方（docs/method_selector.md §11）
+// ===== スマホで答える（評価シートのある7手法・机に並べる方式だけ）。phone/host.html の start・hide・slotOf・answersOf と同じ考え方（docs/method_selector.md §11）
 // 通信（STORE.init）は「スマホで答える」を押した時か、スマホの組を開いた時にだけ始める（紙だけで使う人には通信を増やさない）
 var PHONE = (function(){
 if (typeof document === 'undefined' || typeof STORE === 'undefined' || !STORE) return null;
-var M = 'triangle', PRE = 'phone_host_', QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+var MS = ['triangle', 'paired_diff', 'paired_pref', 'duotrio', 'ranking', 'scoring', 'cata'], PRE = 'phone_host_', QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
 function get(k){ try { var v = localStorage.getItem(PRE + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
 function put(k, v){ try { localStorage.setItem(PRE + k, JSON.stringify(v)); } catch (e) {} }
 function findByGroup(g){ try { for (var i = 0; i < localStorage.length; i++){ var k = localStorage.key(i); if (k && k.indexOf(PRE) === 0){ var v = get(k.slice(PRE.length)); if (v && v.group === g) return k.slice(PRE.length); } } } catch (e) {} return null; }
-function ok(method, desk){ return method === M && !!desk; }
+function ok(method, desk){ return MS.indexOf(method) >= 0 && !!desk; }
+function can(method){ return MS.indexOf(method) >= 0; } // ボタンを出す手法
 // 秘密（50ビット）から決まる置き換え（host.html と同じ。splitmix64）：①組の全コードを 100〜999 の別のコードへ ②評価者番号を1連の中で入れ替える
 function mixer(key){ var x = 0n, M64 = (1n << 64n) - 1n; for (var i = 0; i < key.length; i++) x = x * 32n + BigInt(STORE.CH.indexOf(key[i]));
   return function(m){ x = (x + 0x9E3779B97F4A7C15n) & M64; var z = x; z = ((z ^ (z >> 30n)) * 0xBF58476D1CE4E5B9n) & M64; z = ((z ^ (z >> 27n)) * 0x94D049BB133111EBn) & M64; z ^= z >> 31n; return Number(z % BigInt(m)); }; }
@@ -1007,22 +1018,49 @@ function hide(a, key){
   for (i = pool.length - 1; i > 0; i--){ j = r(i + 1); t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
   var mc = function(c){ return pool[c - 100]; }, fix = function(row){ row.cups.forEach(function(c){ c.code = mc(c.code); }); if (row.answer) row.answer = row.answer.map(mc); };
   a.rows.forEach(fix); a.desks.forEach(fix);
-  var L = SHEET.unitOf(M, 2, true, a.reps), to = [];
+  var L = SHEET.unitOf(a.method, a.names.length, true, a.reps), to = []; // 机に並べる方式の1連＝2×セット数（手法によらない）
   for (b0 = 0; b0 < a.n; b0 += L){ var blk = []; for (e = b0 + 1; e <= Math.min(a.n, b0 + L); e++) blk.push(e); for (i = blk.length - 1; i > 0; i--){ j = r(i + 1); t = blk[i]; blk[i] = blk[j]; blk[j] = t; } blk.forEach(function(ne, k){ to[b0 + k + 1] = ne; }); }
   var s2 = [], d2 = []; a.rows.forEach(function(row){ row.ev = to[row.ev]; }); a.starts.forEach(function(s0, k){ s2[to[k + 1] - 1] = s0; d2[to[k + 1] - 1] = a.dirs[k]; }); a.starts = s2; a.dirs = d2;
   return a;
 }
-function fullKey(recall, key){ return recall + '-' + key.slice(0, 5) + '-' + key.slice(5); } // 呼び出し番号（9）＋秘密（10）
-// 店に送る並び：評価者 e の回る順に「開始セット＋向き|セット:コード×3|…」。中身は入れない
+function fullKey(recall, key){ return recall + '-' + key.slice(0, 5) + '-' + key.slice(5); } // 呼び出し番号（3点・2点・1:2点・順位法＝9／評点法・CATA＝10／評点法の対照あり＝11）＋秘密（10）
+// 打ち込まれた番号を、秘密＝最後の10文字と、残り（紙の呼び出し番号）に分ける。読めなければ null
+function splitFull(raw){ var key = raw.slice(-10), p = raw.length >= 19 && raw.length <= 21 && STORE.KEY_RE.test(key) ? TALLY.parseRecall(raw.slice(0, -10)) : null; return p ? {p: p, key: key} : null; }
+// 店に送る並び：評価者 e の回る順に「開始セット＋向き|セット:コード,コード…|…」（出す順のコード。1:2点の見本はコードを使わないので入れない）。中身は入れない
 function slotOf(a, e){ var rs = a.rows.filter(function(r){ return r.ev === e; }).sort(function(x, y){ return x.visit - y.visit; });
   return rs[0].start + rs[0].dir + rs.map(function(r){ return '|' + r.rep + ':' + r.cups.map(function(c){ return c.code; }).join(','); }).join(''); }
 function slotsOf(a){ var o = {}; for (var e = 1; e <= a.n; e++) o[e] = slotOf(a, e); return o; }
-// 届いた答え answers/$e/a＝「セット:コード|…」→ 打ち込みと同じ形 ans['評価者_セット'] = コード（そのセットのコードでないものは捨てる）
+// 問い（店の q）：パネルが答えるのに要る文だけ（手法・比べるもの・言葉・尺度）。試料名・正解・中身・種は入れない
+function qOf(a, st){
+  var q = {m: a.method};
+  if (a.method === 'paired_diff' || (a.method === 'ranking' && a.purpose === 'intensity')) q.at = st.attr || '';
+  if (a.method === 'ranking') q.p = a.purpose === 'intensity' ? 'intensity' : 'pref';
+  if (a.method === 'scoring'){ q.p = a.purpose === 'pref' ? 'pref' : 'intensity'; q.it = (st.attrs || []).slice(0, a.items); while (q.it.length < a.items) q.it.push(''); q.v = SHEET.SCALES[a.scale].vals.slice(); if (SHEET.SCALES[a.scale].words) q.sw = SHEET.SCALES[a.scale].words.slice(); }
+  if (a.method === 'cata') q.w = (st.words || []).slice();
+  return JSON.stringify(q);
+}
+function itemsOfQ(qs){ try { var q = JSON.parse(qs || 'null'); return q && (q.it || q.w) || null; } catch (e) { return null; } } // 評点法の比べるもの・CATA の言葉（打ち込みの見出しに使う）
+// 届いた答え answers/$e/a（store.js の ANS_RE の形）→ 打ち込みと同じ形 ans['評価者_セット']。手法ごとに形がそろったセットだけを使う（そのセットのコードでない・欠け・重なり・範囲外は捨てる）
+//   3点・2点・1:2点＝コード → ans はコード／順位法＝コード,…（1位から）→ {コード: 順位}／評点法＝コード=点.点 → {コード_項目: 点}／CATA＝コード=言葉.言葉（1〜）→ {コード: [言葉の番号0〜]}
+function setOf(a, cups, body){
+  var es = body.split(','), m = a.method, out = {}, seen = {};
+  if (m === 'triangle' || m === 'paired_diff' || m === 'paired_pref' || m === 'duotrio') return es.length === 1 && es[0].indexOf('=') < 0 && cups.indexOf(+es[0]) >= 0 ? +es[0] : undefined;
+  if (es.length !== cups.length) return undefined;
+  for (var i = 0; i < es.length; i++){
+    var kv = es[i].split('='), c = +kv[0]; if (cups.indexOf(c) < 0 || seen[c]) return undefined; seen[c] = 1;
+    if (m === 'ranking'){ if (kv.length !== 1) return undefined; out[c] = i + 1; continue; }
+    if (kv.length !== 2) return undefined;
+    var vs = kv[1] === '' ? [] : kv[1].split('.').map(Number);
+    if (m === 'scoring'){ if (vs.length !== a.items || !vs.every(function(x){ return SHEET.SCALES[a.scale].vals.indexOf(x) >= 0; })) return undefined; vs.forEach(function(x, t){ out[c + '_' + t] = x; }); }
+    else { var ws = {}; if (!vs.every(function(x){ if (!(x >= 1 && x <= a.words) || ws[x]) return false; ws[x] = 1; return true; })) return undefined; out[c] = vs.map(function(x){ return x - 1; }); }
+  }
+  return out;
+}
 function answersOf(a, d){
   var ans = {}, got = (d && d.answers) || {}, cups = {};
   a.rows.forEach(function(r){ cups[r.ev + '_' + r.rep] = r.cups.map(function(c){ return c.code; }); });
-  Object.keys(got).forEach(function(k){ var e = +k, v = got[k]; if (!(e >= 1 && e <= a.n) || !v || typeof v.a !== 'string' || !STORE.ANS_RE.test(v.a)) return;
-    v.a.split('|').forEach(function(x){ var q = x.split(':'), key = e + '_' + (+q[0]); if (cups[key] && cups[key].indexOf(+q[1]) >= 0) ans[key] = +q[1]; }); });
+  Object.keys(got).forEach(function(k){ var e = +k, v = got[k]; if (String(e) !== k || !(e >= 1 && e <= a.n) || !v || typeof v.a !== 'string' || v.a.length > STORE.ANS_MAX || !STORE.ANS_RE.test(v.a)) return;
+    v.a.split('|').forEach(function(x){ var at = x.indexOf(':'), key = e + '_' + (+x.slice(0, at)); if (!cups[key]) return; var o = setOf(a, cups[key], x.slice(at + 1)); if (o !== undefined) ans[key] = o; }); });
   return ans;
 }
 // パネルの URL：公開先は selector.html が index.html として panel.html と同じフォルダ。手元（selector.html の名前のまま）は隣の phone/panel.html
@@ -1045,39 +1083,42 @@ function remove(room){
   });
 }
 // 組を作る：秘密を作って置き換え → 店に組を作る。a は置き換え前の割り付け（写しを置き換える）
-function create(a, names){
+function create(a, names, q){
   var key = STORE.randKey(), recall = TALLY.recallOf(TALLY.paramsOf(a)), h = hide(JSON.parse(JSON.stringify(a)), key), tries = 0;
+  if (q.length > STORE.Q_MAX) return Promise.reject(new Error('qlong'));
   return STORE.init().then(function go(){
     var room = STORE.randRoom();
-    return STORE.create(room, key, h.n, slotsOf(h)).then(function(){
-      var ph = {room: room, key: key, recall: recall, full: fullKey(recall, key)};
-      put(room, {key: ph.full, names: names, group: a.group, t: Date.now()}); return ph;
+    return STORE.create(room, key, h.n, slotsOf(h), a.method === 'triangle' ? undefined : q).then(function(){ // 3点は q を置かない（host.html の組と同じ形）
+      var ph = {room: room, key: key, recall: recall, full: fullKey(recall, key), q: q};
+      put(room, {key: ph.full, names: names, group: a.group, q: q, t: Date.now()}); return ph;
     }, function(err){ if (String(err && err.message) === 'exists' && ++tries < 5) return go(); throw err; });
   });
 }
-// 開き直し（host の reopen と同じ確かめ方）：19文字を読んで割り付けを作り直し、置き換え → 店に係として登録 → 評価者1の並びが合うか
+// 開き直し（host の reopen と同じ確かめ方）：呼び出し番号（19〜21文字）を読んで割り付けを作り直し、置き換え → 店に係として登録 → 評価者1の並びが合うか
 // 戻り値 {a, names, phone, saved} か {error: 文}
 function reopen(room, raw){
   var saved = get(room); raw = TALLY.norm(raw || (saved && saved.key) || '');
   if (saved && saved.gone){ // 店から消した組：店には聞かず、この端末の控えで開く
     if (raw !== TALLY.norm(saved.key)) return Promise.resolve({error: '組と呼び出し番号が合いません。'});
-    var ka = raw.slice(9), ga = hide(TALLY.rebuild(TALLY.parseRecall(raw.slice(0, 9)), [saved.names[0] || 'A', saved.names[1] || 'B']), ka), rca = TALLY.recallOf(TALLY.paramsOf(ga));
-    gone[room] = true;
-    return Promise.resolve({a: ga, names: ga.names, saved: true, phone: {room: room, key: ka, recall: rca, full: fullKey(rca, ka), gone: {answers: saved.answers || null}}});
+    var sp = splitFull(raw); if (!sp) return Promise.resolve({error: '呼び出し番号が読めません。注ぎ表の番号を確かめてください。'});
+    var ka = sp.key, ga = hide(TALLY.rebuild(sp.p, saved.names), ka), rca = TALLY.recallOf(TALLY.paramsOf(ga));
+    gone[room] = true; if (itemsOfQ(saved.q)) ga.itemNames = itemsOfQ(saved.q);
+    return Promise.resolve({a: ga, names: ga.names, saved: true, phone: {room: room, key: ka, recall: rca, full: fullKey(rca, ka), q: saved.q, gone: {answers: saved.answers || null}}});
   }
   if (!raw) return Promise.resolve({error: 'この端末にはこの組がありません。注ぎ表の呼び出し番号も入れてください。'});
-  var key = raw.slice(9), p = raw.length === 19 && STORE.KEY_RE.test(key) ? TALLY.parseRecall(raw.slice(0, 9)) : null;
+  var sp = splitFull(raw), key = sp && sp.key, p = sp && sp.p;
   if (!p || !ok(p.method, p.mode === 'desk')) return Promise.resolve({error: '呼び出し番号が読めません。注ぎ表の番号を確かめてください。'});
-  var names = (saved && saved.names) || ['', ''], a = hide(TALLY.rebuild(p, [names[0] || 'A', names[1] || 'B']), key), recall = TALLY.recallOf(TALLY.paramsOf(a));
+  var names = saved && saved.names, a = hide(TALLY.rebuild(p, names), key), recall = TALLY.recallOf(TALLY.paramsOf(a));
   var bad = {error: '組と呼び出し番号が合いません。'};
   return STORE.init().then(function(){ return STORE.register(room, key); }).then(function(r){
     if (r === null) return {error: 'この組は見つかりません。'};
-    return STORE.getSlot(room, 1).then(function(s1){ if (s1 !== slotOf(a, 1)) return bad;
-      if (!saved) put(room, {key: fullKey(recall, key), names: ['', ''], group: a.group, t: Date.now()});
-      return {a: a, names: a.names, saved: !!saved, phone: {room: room, key: key, recall: recall, full: fullKey(recall, key)}}; });
+    return Promise.all([STORE.getSlot(room, 1), STORE.getQ(room)]).then(function(v){ var s1 = v[0], q = (saved && saved.q) || v[1] || undefined; if (s1 !== slotOf(a, 1)) return bad;
+      if (itemsOfQ(q)) a.itemNames = itemsOfQ(q); // 比べるもの・言葉は店の問いから（別の端末でも打ち込みの見出しに出る）
+      if (!saved) put(room, {key: fullKey(recall, key), names: [], group: a.group, q: q, t: Date.now()});
+      return {a: a, names: a.names, saved: !!saved, phone: {room: room, key: key, recall: recall, full: fullKey(recall, key), q: q}}; });
   }, function(err){ return err && err.message === 'denied' ? bad : {error: 'つながりません。電波を確かめてください。'}; });
 }
-return {ok: ok, hide: hide, slotOf: slotOf, answersOf: answersOf, panelUrl: panelUrl, qr: qr, watch: watch, create: create, reopen: reopen, remove: remove, get: get, findByGroup: findByGroup};
+return {ok: ok, can: can, qOf: qOf, hide: hide, slotOf: slotOf, answersOf: answersOf, panelUrl: panelUrl, qr: qr, watch: watch, create: create, reopen: reopen, remove: remove, get: get, findByGroup: findByGroup};
 })();
 </script>
 
@@ -1321,7 +1362,9 @@ function build(){
   if (a.error){ $('sh-msg').textContent = a.error; $('pr-pour').innerHTML = $('pr-answers').innerHTML = ''; $('sh-trials').textContent = ''; return; }
   $('sh-msg').textContent = '';
   // スマホの組があるとき：割り付けの条件が同じなら同じ秘密で置き換え直す（注ぎ表・回答用紙・スマホのコードを必ずそろえる）。条件が変わったら組を外す
-  if (st.phone){ if (PHONE && PHONE.ok(st.method, a.desk) && TALLY.recallOf(TALLY.paramsOf(a)) === st.phone.recall) PHONE.hide(a, st.phone.key); else { st.phone = null; phoneUI(a, '条件を変えたので、スマホの組は外しました。'); } }
+  // 問いの言葉（比べるもの・CATA の言葉）を変えたときも外す（店の問いは作るときの1回だけ＝パネルに出る問いと紙がずれないように）
+  // 組がある間（サーバーから消すまで）は問いの言葉と、組を外す条件の操作ができない（qLock）。外れるのは組を消したあとだけ（研修中に答えている組を黙って消したり、誰も見ない組に答えが入ったりしないように）
+  if (st.phone){ if (PHONE && PHONE.ok(st.method, a.desk) && TALLY.recallOf(TALLY.paramsOf(a)) === st.phone.recall && PHONE.qOf(a, st) === st.phone.q) PHONE.hide(a, st.phone.key); else { var qch = PHONE && TALLY.recallOf(TALLY.paramsOf(a)) === st.phone.recall; st.phone = null; phoneUI(a, qch ? '問いの言葉を変えたので、スマホの組は外しました。' : '条件を変えたので、スマホの組は外しました。'); } }
   phoneUI(a);
   var tr = $('sh-trials'), N = n * reps;
   var RU = desk ? 'セット' : '回';
@@ -1360,35 +1403,48 @@ function build(){
   buildAnswers(a);
 
 }
-// スマホで答える：3点試験法のときだけ出す。机に並べる方式のときだけ押せる（ほかは押せない見た目で、押すと理由を1行）
+// スマホで答える：評価シートのある手法（PHONE.can）で出す。机に並べる方式のときだけ押せる（ほかは押せない見た目で、押すと理由を1行）
 var PH_DESK = 'スマホで答えるのは、机に並べる方式だけです。';
-function phoneOn(){ return !!PHONE && st.method === 'triangle'; }
+function phoneOn(){ return !!PHONE && PHONE.can(st.method); }
 function phoneUI(a, note){
   var b = $('sh-phone'), why = a.desk ? '' : PH_DESK, m = $('sh-phmsg');
-  b.setAttribute('aria-disabled', String(!!why)); b.hidden = !!st.phone || !phoneOn(); $('sh-phbox').hidden = !st.phone;
-  if (!st.phone) $('sh-qr').innerHTML = '';
+  b.setAttribute('aria-disabled', String(!!why)); b.hidden = !!st.phone || !phoneOn(); $('sh-phbox').hidden = !st.phone || !!st.phone.gone; // 組を消したら QR の枠は隠す
+  if (!st.phone || st.phone.gone) $('sh-qr').innerHTML = '';
   if (note !== undefined) m.textContent = note; else if (m.textContent === PH_DESK && !why) m.textContent = '';
+  qLock();
 }
+// 組がある間は、問いの言葉（比べるもの・CATA の言葉）を読み取り専用に、組を外す条件の操作（試料の数・点のつけ方・比べるものの数・対照・セット数・刷る人数・番号の付け方・1人の回数・引き直し）を押せなくする。
+// 試料名と印刷まわりはそのまま。組を消したら・無ければ全部戻る
+var Q_ELS = '#sh-attr, #sh-words, #sh-names [id^="sh-at"]', C_ELS = '#sh-k, #sh-scale, #sh-items, #sh-ctrl, #sh-desks, #sh-blocks, #sh-reps, #sh-redo, input[name="sh-code"]';
+function qLock(){ var on = !!(st && st.phone && !st.phone.gone);
+  [].forEach.call(document.querySelectorAll(Q_ELS), function(el){ el.readOnly = on; });
+  [].forEach.call(document.querySelectorAll(C_ELS), function(el){ el.disabled = on; });
+  $('sh-qlock').hidden = !on; }
+// 開いていた組がまだサーバーにあるまま紙を閉じた／別の手法で作り直したとき：組は消さずに残し、開き方を1行（配った QR はそのまま答えを受け付ける）
+function keptNote(){ return st && st.phone && !st.phone.gone ? 'スマホの組 ' + st.phone.room + ' は消さずに残しています。答えは打ち込むタブで組 ' + st.phone.room + ' を開くと見られます。' : ''; }
+// 打ち込むタブで組を消したら、紙を作るタブの言葉と条件をまた直せるように・QR の枠を隠す
+window.sheetPhoneGone = function(room, g){ if (st && st.phone && st.phone.room === room){ st.phone.gone = st.phone.gone || g || true; qLock(); $('sh-phbox').hidden = true; $('sh-qr').innerHTML = ''; } };
 $('sh-phone').addEventListener('click', function(){
   var sc = window.sheetCurrent, b = this, my = st; if (!st || st.phone || st.phoneBusy) return;
   if (!phoneOn() || !sc) return; if (!sc.a.desk){ $('sh-phmsg').textContent = PH_DESK; return; }
   st.phoneBusy = true; b.disabled = true;
-  PHONE.create(sc.a, sc.names).then(function(ph){
+  PHONE.create(sc.a, sc.names, PHONE.qOf(sc.a, st)).then(function(ph){
     my.phoneBusy = false; b.disabled = false;
     if (st !== my || !window.sheetCurrent || TALLY.recallOf(TALLY.paramsOf(window.sheetCurrent.a)) !== ph.recall){ $('sh-phmsg').textContent = '条件が変わったので、もう一度押してください。'; return; }
     st.phone = ph; build(); // 注ぎ表・回答用紙を置き換え後のコードで描き直す
     $('sh-phmsg').textContent = 'コードを変えました。刷った紙は刷り直してください。紙で答える人には、番号の大きい紙から渡します。';
     var u = PHONE.panelUrl(ph.room); $('sh-url').textContent = u; PHONE.qr($('sh-qr'), u);
     PHONE.watch(ph.room, function(d){ var sc2 = window.sheetCurrent; if (st && st.phone && st.phone.room === ph.room && sc2) $('sh-phcount').textContent = '答えた人 ' + TALLY.present(sc2.a, PHONE.answersOf(sc2.a, d)).length + '人'; });
-  }, function(){ my.phoneBusy = false; b.disabled = false; $('sh-phmsg').textContent = '組を作れませんでした。電波を確かめて、もう一度押してください。'; });
+  }, function(err){ my.phoneBusy = false; b.disabled = false; $('sh-phmsg').textContent = err && err.message === 'qlong' ? '言葉が長すぎて、スマホに送れません。言葉を短くしてください。' : '組を作れませんでした。電波を確かめて、もう一度押してください。'; });
 });
 function open_(method, scale, ctrl){
+  var kept = keptNote();
   var k = SHEET.METHODS[method].k || (inp().samples === '6+' ? 6 : (method === 'scoring' || method === 'cata') && inp().samples === '2' ? 2 : 3);
   st = {method: method, seed: SHEET.newSeed(), k: k, names: [], attr: '', attrs: [], words: [], scale: +(scale || 0), ctrl: !!ctrl, ctrlBranch: !!ctrl, items: 1, n: 12, unit: null, purpose: inp().purpose || 'diff', key: keyOf()}; // 問いに答えずに開いたとき（点検など）は前の既定と同じ「違い」
   $('sheet').style.display = ''; // 打ち込み中に作り直しても新しいシートを出す（qa 第2回）
   $('sh-closed').hidden = true; box.hidden = false; document.body.classList.add('sheet-open'); $('sh-phmsg').textContent = '';
-  $('sh-phone').setAttribute('aria-disabled', 'false'); $('sh-phone').hidden = method !== 'triangle' || !PHONE; $('sh-phbox').hidden = true; $('sh-qr').innerHTML = '';
-  namesForm(); build(); if (window.tabGo) window.tabGo('sheet'); window.scrollTo && window.scrollTo(0, 0);
+  $('sh-phone').setAttribute('aria-disabled', 'false'); $('sh-phone').hidden = !PHONE || !PHONE.can(method); $('sh-phbox').hidden = true; $('sh-qr').innerHTML = '';
+  namesForm(); build(); if (kept) $('sh-phmsg').textContent = kept; if (window.tabGo) window.tabGo('sheet'); window.scrollTo && window.scrollTo(0, 0);
 }
 function close_(msg){
   $('sheet').style.display = ''; box.hidden = true; st = null; window.sheetGroup = null; window.sheetCurrent = null; document.body.classList.remove('sheet-open'); document.body.removeAttribute('data-print');
@@ -1402,7 +1458,7 @@ out.addEventListener('click', function(e){ var b = e.target.closest ? e.target.c
 box.addEventListener('input', function(e){ if (st && (/^sh-n/.test(e.target.id) || /^sh-at/.test(e.target.id) || e.target.id === 'sh-words')) build(); });
 box.addEventListener('change', function(e){ if (!st) return; if (e.target.id === 'sh-ctrl'){ st.ctrl = e.target.checked; namesForm(); build(); } else if (e.target.id === 'sh-k' || e.target.id === 'sh-scale' || e.target.id === 'sh-items'){ if (e.target.id === 'sh-k') st.k = +e.target.value; else if (e.target.id === 'sh-scale') st.scale = +e.target.value; else { build(); st.items = +e.target.value; } namesForm(); build(); } else if (e.target.name === 'sh-code' || e.target.id === 'sh-per' || e.target.id === 'sh-reps' || e.target.id === 'sh-desks' || e.target.id === 'sh-blocks') build(); });
 $('sh-redo').addEventListener('click', function(){ if (st){ st.seed = SHEET.newSeed(); build(); } });
-$('sh-close').addEventListener('click', function(){ close_(''); });
+$('sh-close').addEventListener('click', function(){ close_(keptNote()); });
 $('sh-showpour').addEventListener('click', function(){ var on = document.body.classList.toggle('pour-shown'); this.setAttribute('aria-pressed', String(on)); this.textContent = on ? '注ぎ表を隠す' : '注ぎ表を見る'; });
 function pr(mode){ document.body.setAttribute('data-print', mode); window.print(); }
 $('sh-qrprint').addEventListener('click', function(){ pr('qr'); });
@@ -1410,7 +1466,7 @@ window.addEventListener('afterprint', function(){ document.body.removeAttribute(
 $('sh-ppour').addEventListener('click', function(){ pr('pour'); });
 $('sh-pans').addEventListener('click', function(){ pr('answers'); });
 // 上の4項目が変わったら、黙って作り変えずに閉じる
-window.sheetRefresh = function(){ if (st && keyOf() !== st.key) close_('条件が変わりました。もう一度「評価シートを作る」を押してください。'); };
+window.sheetRefresh = function(){ if (st && keyOf() !== st.key) close_('条件が変わりました。もう一度「評価シートを作る」を押してください。' + keptNote()); };
 })();
 </script>
 <script id="tallyui">
@@ -1438,7 +1494,7 @@ function setHTML(r){
       var isNone = w === cur.a.words;
       h += '<div class="tl-wl">' + (isNone ? '当てはまるものなし' : esc(wn(w))) + '</div><div class="tl-cg" style="grid-template-columns:repeat(' + kk + ',1fr)">';
       r.cups.forEach(function(c){ var x = v && v[c.code], pr = !!x && (isNone ? x.length === 0 : x.indexOf(w) >= 0);
-        h += '<button type="button" class="tl-cb" data-k="' + k + '" data-c="' + c.code + '"' + (isNone ? ' data-none="1"' : ' data-w="' + w + '"') + ' aria-pressed="' + pr + '" aria-label="' + c.code + 'に' + (isNone ? '当てはまるものなし' : esc(wn(w))) + '">' + c.code + '</button>'; });
+        h += '<button type="button" class="tl-cb" data-k="' + k + '" data-c="' + c.code + '"' + (isNone ? ' data-none="1"' : ' data-w="' + w + '"') + ' aria-pressed="' + pr + '" aria-label="' + c.code + 'に' + (isNone ? '当てはまるものなし' : esc(wn(w))) + '"' + (ph ? ' disabled' : '') + '>' + c.code + '</button>'; });
       h += '</div>';
     }
   } else if (cur.a.method === 'scoring'){ // コードごと・比べるものごとに、紙の数字のボタン
@@ -1447,7 +1503,7 @@ function setHTML(r){
       h += '<div class="tl-srow"><span class="tl-rc">' + c.code + '</span>';
       for (var t = 0; t < cur.a.items; t++){
         h += (itn(t) ? '<div class="tl-it">' + esc(itn(t)) + '</div>' : '') + '<div class="tl-sb" style="grid-template-columns:repeat(' + (vals.length === 9 ? 5 : vals.length > 7 ? 6 : vals.length) + ',1fr)">'; // 5・7段階は1行、11段階は 0〜5／6〜10 の2行
-        vals.forEach(function(x){ var pr = !!v && v[c.code + '_' + t] === x; h += '<button type="button" class="tl-r" data-k="' + k + '" data-c="' + c.code + '" data-t="' + t + '" data-s="' + x + '" aria-pressed="' + pr + '" aria-label="' + c.code + (itn(t) ? 'の' + esc(itn(t)) : '') + 'に' + sv(x) + '">' + sv(x) + '</button>'; });
+        vals.forEach(function(x){ var pr = !!v && v[c.code + '_' + t] === x; h += '<button type="button" class="tl-r" data-k="' + k + '" data-c="' + c.code + '" data-t="' + t + '" data-s="' + x + '" aria-pressed="' + pr + '" aria-label="' + c.code + (itn(t) ? 'の' + esc(itn(t)) : '') + 'に' + sv(x) + '"' + (ph ? ' disabled' : '') + '>' + sv(x) + '</button>'; });
         h += '</div>';
       }
       h += '</div>';
@@ -1455,7 +1511,7 @@ function setHTML(r){
   } else if (cur.a.method === 'ranking'){
     r.cups.forEach(function(c){
       h += '<div class="tl-rrow' + (r.cups.length >= 6 ? ' tl-wide' : '') + '"><span class="tl-rc">' + c.code + '</span><span class="tl-rb">'; // 6試料以上はコードの下にボタンを1列で
-      for (var x = 1; x <= r.cups.length; x++) h += '<button type="button" class="tl-r" data-k="' + k + '" data-c="' + c.code + '" data-r="' + x + '" aria-pressed="' + (!!v && v[c.code] === x) + '" aria-label="' + c.code + 'に' + x + '位">' + x + '</button>';
+      for (var x = 1; x <= r.cups.length; x++) h += '<button type="button" class="tl-r" data-k="' + k + '" data-c="' + c.code + '" data-r="' + x + '" aria-pressed="' + (!!v && v[c.code] === x) + '" aria-label="' + c.code + 'に' + x + '位"' + (ph ? ' disabled' : '') + '>' + x + '</button>';
       h += '</span></div>';
     });
   } else {
@@ -1506,11 +1562,11 @@ function openPhone(room, key){
 }
 function open_(){
   var g = TALLY.norm($('tl-grp').value), key = $('tl-key').value.trim(), saved = g.length === 3 ? TALLY.loadSheet(g) : null, p, a;
-  if (PHONE && g.length === 6) return openPhone(g, key); // スマホの組（6文字）＋19文字の呼び出し番号
+  if (PHONE && g.length === 6) return openPhone(g, key); // スマホの組（6文字）＋呼び出し番号（紙の番号9〜11文字＋秘密10文字）
   var pr = PHONE && g.length === 3 ? PHONE.findByGroup(g) : null; // この端末でスマホの組にした紙の組は、置き換えたコードで開く
-  if (pr && (!key || TALLY.norm(key).length <= 9)) return openPhone(pr, '');
+  if (pr && (!key || TALLY.norm(key).length <= 11)) return openPhone(pr, ''); // 紙の呼び出し番号は9〜11文字
   if (g.length !== 3){ msg('組を3文字で入れてください（回答用紙の右上）。'); return; }
-  if (TALLY.norm(key).length === 19){ msg('スマホの組は、組の欄に6文字の組を入れてください。'); return; }
+  if (TALLY.norm(key).length >= 19){ msg('スマホの組は、組の欄に6文字の組を入れてください。'); return; }
   if (key){
     p = TALLY.parseRecall(key);
     if (!p){ msg('呼び出し番号が読めません。注ぎ表の番号を確かめてください。'); return; }
@@ -1698,7 +1754,8 @@ $('tl-go').addEventListener('click', open_);
 $('tl-del').addEventListener('click', function(){
   if (!cur || !cur.phone || cur.phone.gone || !confirm('スマホの答えをサーバーから消します。この端末の控えは残ります。元に戻せません。')) return;
   var me = cur;
-  PHONE.remove(cur.phone.room).then(function(g){ if (cur !== me) return; cur.phone.gone = g; cur.pans = PHONE.answersOf(cur.a, g); $('tl-del').hidden = true;
+  var room = cur.phone.room;
+  PHONE.remove(room).then(function(g){ if (window.sheetPhoneGone) window.sheetPhoneGone(room, g); if (cur !== me) return; cur.phone.gone = g; cur.pans = PHONE.answersOf(cur.a, g); $('tl-del').hidden = true;
     $('tl-head').textContent += '（サーバーから消した組）'; msg('サーバーから消しました。この端末の控えで集計できます。'); render(); },
     function(err){ msg(err && err.message === 'denied' ? 'この組は消せませんでした。' : 'つながりません。電波を確かめてください。'); });
 });
@@ -1709,6 +1766,7 @@ $('tl-ev').addEventListener('change', function(e){ if (cur){ cur.ev = +e.target.
 $('tl-sets').addEventListener('click', function(e){
   var b = e.target.closest ? e.target.closest('button[data-k]') : null; if (!b || !cur) return;
   var k = b.getAttribute('data-k'), c = +b.getAttribute('data-c');
+  if (byPhone(k)) return; // スマホで届いたセットは押せない（スマホの答えを使う）
   if (b.hasAttribute('data-w') || b.hasAttribute('data-none')){
     var cv = cur.ans[k] || {}, lst = cv[c];
     if (b.hasAttribute('data-none')){ if (lst && lst.length === 0) delete cv[c]; else cv[c] = []; }

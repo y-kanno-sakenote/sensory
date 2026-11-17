@@ -21,6 +21,21 @@ h1{font-size:1.15rem;margin:.2em 0;color:var(--sub);font-weight:600}
 .codes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .codes button{font-size:1.7rem;font-weight:700;min-height:68px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}
 .codes button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
+.cup{border-top:1px solid var(--line);padding:8px 0 4px}
+.cup:first-of-type{border-top:0;padding-top:0}
+.ch{margin:0 0 6px;font-size:1.05rem}
+.ch b{font-size:1.5rem;font-variant-numeric:tabular-nums}
+.it{margin:6px 0 2px;font-weight:700}
+.ends{display:flex;justify-content:space-between;margin:0;font-size:.9rem;color:var(--sub)}
+.key{font-size:.95rem;display:flex;flex-wrap:wrap;gap:2px 12px;margin:.4em 0}
+.opts,.vals{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.vals{gap:8px}
+.ends2{display:grid;gap:8px;margin:2px 0 0;font-size:.9rem;color:var(--sub)}
+.ends2 span{text-align:right}
+.none{margin-top:10px}
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.opts button,.vals button,.words button,.none button{font-size:1.15rem;min-height:48px;min-width:44px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums;padding:4px 10px}
+.opts button[aria-pressed="true"],.vals button[aria-pressed="true"],.words button[aria-pressed="true"],.none button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
 .bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
 .bar .in{max-width:520px;margin:0 auto}
 #send{width:100%;font-size:1.3rem;font-weight:700;min-height:56px;border-radius:12px;border:0;background:var(--accent);color:var(--card);cursor:pointer}
@@ -41,7 +56,7 @@ h1{font-size:1.15rem;margin:.2em 0;color:var(--sub);font-weight:600}
 <div id="work" hidden>
   <p class="who">評価者番号 <b id="ev"></b></p>
   <p id="route" class="route" hidden></p>
-  <p class="q">3つのうち2つは同じで、1つだけ違います。左から順に味わい、違う1つのコードを押してください。分からないときは、勘でどれか1つを。</p>
+  <p class="q" id="ask"></p>
   <p class="q" id="rinse" hidden>上のセットから順に味わいます。セットのあいだは、口をすすいでください。</p>
   <div id="sets"></div>
 </div>
@@ -64,11 +79,14 @@ var CH = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // SHEET.GROUP_CHARS と同じ（0/
 var ROOM_RE = /^[2-9A-HJ-NP-Z]{6}$/, KEY_RE = /^[2-9A-HJ-NP-Z]{10}$/;
 // データの形（database.rules.json と同じ決まり。README の表）：
 // groups/$g/{host: 作った uid, hostkey: 秘密（誰も読めない）, hosts/$uid: 秘密（係の端末）, n: 枠の数,
-//            slots/$e: 並び, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
-// slots/$e＝「開始セット＋向き|セット:コード,コード,コード|…」（回る順・置き換えた後のコード）。中身（どれが違う1つか）は入れない
-var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9],[0-9][0-9][0-9],[0-9][0-9][0-9])+$/;
-// answers/$e/a＝「セット:選んだコード|…」
-var ANS_RE = /^[0-9][0-9]?:[0-9][0-9][0-9](\|[0-9][0-9]?:[0-9][0-9][0-9])*$/;
+//            slots/$e: 並び, q: 問い, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
+// slots/$e＝「開始セット＋向き|セット:コード,コード(,コード…)|…」（回る順・置き換えた後のコード・1セットに2〜8個）。中身・試料名は入れない
+var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9](,[0-9][0-9][0-9])(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?)+$/;
+// q＝問い（JSON の文字。手法・比べるもの・言葉・尺度。答えるのに要る文だけで、試料名・正解・中身は入れない）。無い組（host.html の組）は3点試験法
+// answers/$e/a＝「セット:答え|…」。答え＝コード（3点・2点・1:2点）／コード,コード,…（順位法＝1位から）／
+//   コード=値.値,…（評点法＝比べるものの順の点・CATA＝選んだ言葉の番号1〜。何も無いときは「コード=」＝当てはまるものなし）
+var ANS_V = '(-[1-3]|1[0-9]|2[0-5]|[0-9])', ANS_E = '[0-9][0-9][0-9](=(' + ANS_V + '(\\.' + ANS_V + ')*)?)?', ANS_S = '[0-9][0-9]?:' + ANS_E + '(,' + ANS_E + ')*';
+var ANS_RE = new RegExp('^' + ANS_S + '(\\|' + ANS_S + ')*$'), ANS_MAX = 8000, Q_MAX = 4000;
 var log = []; // この端末が受け取ったデータの控え（点検用。画面には出さない）
 function rec(v){ try { log.push(JSON.parse(JSON.stringify(v === undefined ? null : v))); } catch (e) {} return v; }
 function rand(len){ var b = new Uint8Array(len), s = ''; crypto.getRandomValues(b); for (var i = 0; i < len; i++) s += CH[b[i] % 32]; return s; } // 256÷32 で偏りなし
@@ -94,7 +112,7 @@ function Local(){
   function view(d){ return isHost(d) ? {claims: d.claims || null, answers: d.answers || null} : null; } // 係が読めるのは claims と answers（hostkey は誰も読めない）
   function fire(g){ (watchers[g] || []).forEach(function(cb){ cb(view(read(g))); }); }
   this.init = function(){ return Promise.resolve(me); };
-  this.create = function(g, key, n, slots){ return locked(g, function(d){ if (d && d.host) throw new Error('exists'); var h = {}; h[me.uid] = key; return {write: {host: me.uid, hostkey: key, hosts: h, n: n, slots: slots}}; }); };
+  this.create = function(g, key, n, slots, q){ return locked(g, function(d){ if (d && d.host) throw new Error('exists'); var h = {}, w; h[me.uid] = key; w = {host: me.uid, hostkey: key, hosts: h, n: n, slots: slots}; if (q) w.q = q; return {write: w}; }); };
   this.register = function(g, key){ return locked(g, function(d){ if (!d || !d.hostkey) return {value: null}; if (d.hostkey !== key) throw denied(); d.hosts = d.hosts || {}; d.hosts[me.uid] = key; return {write: d, value: true}; }); };
   this.watch = function(g, cb){ (watchers[g] = watchers[g] || []).push(cb); var c = chan(g); if (c) c.addEventListener('message', function(){ cb(view(read(g))); });
     window.addEventListener('storage', function(ev){ if (ev.key === PRE + g) cb(view(read(g))); }); cb(view(read(g))); };
@@ -109,6 +127,9 @@ function Local(){
   this.getSlot = function(g, e){ var d = read(g); if (!d || !d.slots) return Promise.resolve(null);
     if (!((d.claims || {})[e] === me.uid || isHost(d))) return Promise.reject(denied()); // 自分の番号の並びだけ（係は全部）
     return Promise.resolve(d.slots[e] || null); };
+  this.getQ = function(g){ var d = read(g); if (!d) return Promise.resolve(null);
+    if (!((d.byuid || {})[me.uid] || isHost(d))) return Promise.reject(denied()); // 問いは番号を取った人と係だけ（ルールと同じ）
+    return Promise.resolve(d.q || null); };
   this.send = function(g, e, a){
     if (navigator.onLine === false) return Promise.reject(offlineErr());
     return locked(g, function(d){ if (!d || !d.claims || d.claims[e] !== me.uid) throw denied(); d.answers = d.answers || {}; d.answers[e] = {a: a, t: Date.now()}; return {write: d, value: true}; });
@@ -130,10 +151,10 @@ function Fire(){
   };
   function G(g){ return db.ref('groups/' + g); }
   // 作る：host を取ってから、hostkey・自分の hosts・枠の数・並びを1回の更新で（ルールは同じ更新の中の hostkey と比べる）
-  this.create = function(g, key, n, slots){
+  this.create = function(g, key, n, slots, q){
     return G(g).child('host').transaction(function(cur){ return cur ? undefined : me.uid; }).then(function(r){
       if (!r.committed || r.snapshot.val() !== me.uid) throw new Error('exists');
-      var u = {hostkey: key, n: n, slots: slots}; u['hosts/' + me.uid] = key;
+      var u = {hostkey: key, n: n, slots: slots}; if (q) u.q = q; u['hosts/' + me.uid] = key;
       return G(g).update(u);
     });
   };
@@ -167,6 +188,7 @@ function Fire(){
   // 組をまるごと消す：ルールが係（hosts/<自分>）だけに通す。先に見張りを外す（消したあとは answers を読めなくなる）
   this.remove = function(g){ G(g).child('claims').off(); G(g).child('answers').off(); return G(g).remove().then(function(){ return true; }, function(){ throw denied(); }); };
   this.getSlot = function(g, e){ return G(g).child('slots/' + e).get().then(function(s){ return s.val(); }); };
+  this.getQ = function(g){ return G(g).child('q').get().then(function(s){ return s.val(); }); };
   // 送る：つながっていないと SDK は書き込みを溜めて後で送るので、6秒で届かなければ「送れていない」と返し、届いたら onLate を呼ぶ
   this.send = function(g, e, a, onLate){
     var done = false, p = G(g).child('answers/' + e).set({a: a, t: firebase.database.ServerValue.TIMESTAMP}).then(function(){ done = true; return true; });
@@ -179,14 +201,15 @@ function Fire(){
 
 var impl = LOCAL ? new Local() : new Fire(), ready = null;
 return {
-  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, CH: CH, log: log,
+  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, ANS_MAX: ANS_MAX, Q_MAX: Q_MAX, CH: CH, log: log,
   randRoom: function(){ return rand(6); }, randKey: function(){ return rand(10); }, // 秘密＝32文字×10＝50ビット（crypto）
   init: function(){ return ready || (ready = impl.init().then(function(){ return {uid: impl.uid, mode: impl.mode}; })); }, // 何度呼んでも1回だけ
-  create: function(g, key, n, slots){ return impl.create(g, key, n, slots); },
+  create: function(g, key, n, slots, q){ return impl.create(g, key, n, slots, q); }, // q（問い）は無くてもよい（host.html は3点だけなので置かない）
   register: function(g, key){ return impl.register(g, key); },
   watch: function(g, cb){ return impl.watch(g, function(d){ cb(rec(d)); }); },
   claim: function(g){ return impl.claim(g).then(rec); },
   getSlot: function(g, e){ return impl.getSlot(g, e).then(rec); },
+  getQ: function(g){ return impl.getQ(g).then(rec); },
   remove: function(g){ return impl.remove(g); },
   send: function(g, e, a, onLate){ return impl.send(g, e, a, onLate); },
   onConn: function(cb){ return impl.onConn(cb); }
@@ -198,41 +221,120 @@ return {
 <script id="panelui">
 (function(){
 var $ = function(id){ return document.getElementById(id); };
-var g = String(new URLSearchParams(location.search).get('g') || '').toUpperCase(), me = {e: null, visits: [], sel: {}, sent: null}; // sel＝{セット: コード}・sent＝送った答えの文字列
+// me.q＝問い（店の q。無ければ3点試験法）・sel＝{セット: 答え}（手法ごとの形は下）・sent＝送った答えの文字列
+var g = String(new URLSearchParams(location.search).get('g') || '').toUpperCase(), me = {e: null, visits: [], sel: {}, sent: null, q: {m: 'triangle'}};
 window.PHONE_PANEL = me; // 点検用
+var PICK = {triangle: 1, paired_diff: 1, paired_pref: 1, duotrio: 1};
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function msg(t){ $('msg').hidden = !t; $('msg').textContent = t || ''; }
 function status(t, cls){ $('status').textContent = t || ''; $('status').className = cls || ''; }
 function key(){ return 'phone_panel_' + g + '_' + me.e; }
 function save(){ try { localStorage.setItem(key(), JSON.stringify({sel: me.sel, sent: me.sent})); } catch (e) {} }
 function load(){ try { return JSON.parse(localStorage.getItem(key()) || 'null'); } catch (e) { return null; } }
-function answerStr(){ return me.visits.map(function(v){ return v.set + ':' + me.sel[v.set]; }).join('|'); }
-function left(){ return me.visits.filter(function(v){ return !me.sel[v.set]; }).length; }
-
-function render(){
-  var h = '';
-  me.visits.forEach(function(v){
-    h += '<section class="set">' + (me.visits.length > 1 ? '<h2>セット' + v.set + '</h2>' : '') + '<div class="codes">'
-      + v.codes.map(function(c){ return '<button type="button" data-set="' + v.set + '" data-code="' + c + '" aria-pressed="' + String(me.sel[v.set] === c) + '">' + c + '</button>'; }).join('') + '</div></section>';
+function m(){ return me.q.m; }
+function items(){ return (me.q.it || []).length || 1; }
+function nW(){ return (me.q.w || []).length; }
+// 問い：紙の回答用紙の問い（selector.html の question()）と同じ中身・同じ言葉。「○をつけて」「書いて」は「押して」に
+function ask(){
+  var q = me.q, at = q.at ? '「' + q.at + '」' : '（　　　　　）';
+  switch (m()){
+    case 'paired_diff': return '2つを左から順に味わい、' + at + 'が強い方のコードを押してください。分からないときは、勘でどちらか1つを。';
+    case 'paired_pref': return '2つを左から順に味わい、好きな方のコードを押してください。分からないときは、勘でどちらか1つを。';
+    case 'duotrio': return 'はじめに「見本」を味わって覚えてください。次に2つを左から順に味わい、見本と同じもののコードを押してください。分からないときは、勘でどちらか1つを。';
+    case 'ranking': return '左から順に味わい、' + (q.p === 'intensity' ? at + 'が強い順' : '好きな順') + 'に 1 から順位を押してください。分からないときは勘で。'; // 同じ順位を押すと前の方が外れるので、「同じ順位は1つだけ」は言わない（紙の問いはそのまま）
+    case 'scoring': { var w = q.p === 'pref' ? '好ましさ' : '強さ', one = q.it && q.it[0] ? '「' + q.it[0] + '」' : '（　　　　　）';
+      return items() > 1 ? '左から順に味わい、試料ごとに、各行の' + w + 'に当てはまる数字を1つずつ押してください。' : '左から順に味わい、' + one + 'の' + w + 'に当てはまる数字を1つ押してください。'; }
+    case 'cata': return '左から順に味わい、試料ごとに、当てはまる言葉すべてを押してください。当てはまる言葉が無い試料は「当てはまるものなし」を押してください。';
+  }
+  return '3つのうち2つは同じで、1つだけ違います。左から順に味わい、違う1つのコードを押してください。分からないときは、勘でどれか1つを。';
+}
+// 問いを読む：形が違えば null（読めない）
+function readQ(s){
+  if (s === null || s === undefined) return {m: 'triangle'}; // q の無い組（host.html の組）は3点試験法
+  var q; try { q = JSON.parse(s); } catch (e) { return null; }
+  if (!q || typeof q !== 'object' || !/^(triangle|paired_diff|paired_pref|duotrio|ranking|scoring|cata)$/.test(q.m)) return null;
+  var strs = function(x){ return Array.isArray(x) && x.every(function(y){ return typeof y === 'string'; }); };
+  if (q.at !== undefined && typeof q.at !== 'string') return null;
+  if (q.m === 'scoring' && !(Array.isArray(q.v) && q.v.length >= 2 && q.v.every(function(x){ return x === (x | 0) && x >= -3 && x <= 10; }) && strs(q.it || []) && (!q.sw || (strs(q.sw) && q.sw.length === q.v.length)))) return null;
+  if (q.m === 'cata' && !(strs(q.w) && q.w.length >= 1 && q.w.length <= 25)) return null;
+  return q;
+}
+function full(v){ // そのセットに全部答えたか
+  var s = me.sel[v.set];
+  if (PICK[m()]) return v.codes.indexOf(s) >= 0;
+  if (!s) return false;
+  if (m() === 'ranking'){ var seen = {}; return v.codes.every(function(c){ var r = s[c]; if (!(r >= 1 && r <= v.codes.length) || seen[r]) return false; seen[r] = 1; return true; }); }
+  if (m() === 'scoring') return v.codes.every(function(c){ for (var t = 0; t < items(); t++) if (me.q.v.indexOf(s[c + '_' + t]) < 0) return false; return true; });
+  return v.codes.every(function(c){ return Array.isArray(s[c]); }); // CATA：空の配列＝当てはまるものなし
+}
+function part(v){ // 1セット分の答えの文字（store.js の ANS_RE の形）
+  var s = me.sel[v.set];
+  if (PICK[m()]) return v.set + ':' + s;
+  if (m() === 'ranking') return v.set + ':' + v.codes.slice().sort(function(x, y){ return s[x] - s[y]; }).join(',');
+  if (m() === 'scoring') return v.set + ':' + v.codes.map(function(c){ var o = []; for (var t = 0; t < items(); t++) o.push(s[c + '_' + t]); return c + '=' + o.join('.'); }).join(',');
+  return v.set + ':' + v.codes.map(function(c){ return c + '=' + s[c].slice().sort(function(x, y){ return x - y; }).map(function(w){ return w + 1; }).join('.'); }).join(',');
+}
+function answerStr(){ return me.visits.map(part).join('|'); }
+function left(){ return me.visits.filter(function(v){ return !full(v); }).length; }
+function btn(attrs, pressed, text, label){ return '<button type="button" ' + attrs + ' aria-pressed="' + String(!!pressed) + '"' + (label ? ' aria-label="' + esc(label) + '"' : '') + '>' + text + '</button>'; }
+function setBody(v){
+  var s = me.sel[v.set], h = '', D = 'data-set="' + v.set + '" ';
+  if (PICK[m()]) return '<div class="codes" style="grid-template-columns:repeat(' + v.codes.length + ',1fr)">'
+    + v.codes.map(function(c){ return btn(D + 'data-code="' + c + '"', s === c, c); }).join('') + '</div>';
+  v.codes.forEach(function(c, i){
+    var x = s && s[c]; h += '<div class="cup"><p class="ch"><b>' + c + '</b></p>'; // 上から順は問いの文で言っている
+    if (m() === 'ranking'){ h += '<div class="opts">'; for (var r = 1; r <= v.codes.length; r++) h += btn(D + 'data-code="' + c + '" data-r="' + r + '"', x === r, r + '位', c + 'に' + r + '位'); h += '</div>'; }
+    else if (m() === 'scoring'){ // 1行に収まらない数は2行に（ボタンを44px以上に保つ。11段階は 0〜5／6〜10、7段階は −3〜0／+1〜+3）。2行のときは「弱い」を1行目の左上、「強い」を2行目の右下に
+      var vals = me.q.v, cols = vals.length === 9 ? 5 : vals.length > 7 ? 6 : vals.length === 7 ? 4 : vals.length, neg = vals[0] < 0, lo = me.q.p === 'pref' ? '嫌い' : '弱い', hi = me.q.p === 'pref' ? '好き' : '強い';
+      for (var t = 0; t < items(); t++){
+        var it = (me.q.it || [])[t];
+        if (items() > 1) h += '<p class="it">' + (it ? esc(it) : '（　　　）') + '</p>';
+        var two = cols < vals.length;
+        if (!me.q.sw) h += '<p class="ends"><span>' + lo + '</span>' + (two ? '' : '<span>' + hi + '</span>') + '</p>'; // 言葉は両端だけ（紙と同じ）
+        h += '<div class="vals" style="grid-template-columns:repeat(' + cols + ',1fr)">' + vals.map(function(val){ var sv = val > 0 && neg ? '+' + val : String(val); return btn(D + 'data-code="' + c + '" data-t="' + t + '" data-s="' + val + '"', s && s[c + '_' + t] === val, sv, c + (it ? 'の' + it : '') + 'に' + sv); }).join('') + '</div>';
+        if (!me.q.sw && two) h += '<p class="ends2" style="grid-template-columns:repeat(' + cols + ',1fr)"><span style="grid-column:' + ((vals.length - 1) % cols + 1) + '">' + hi + '</span></p>';
+      }
+    } else {
+      h += '<div class="words">' + me.q.w.map(function(w, wi){ return btn(D + 'data-code="' + c + '" data-w="' + wi + '"', x && x.indexOf(wi) >= 0, esc(w)); }).join('') + '</div>'
+        + '<div class="none">' + btn(D + 'data-code="' + c + '" data-none="1"', x && x.length === 0, '当てはまるものなし') + '</div>'; // 言葉の列から離す
+    }
+    h += '</div>';
   });
+  return h;
+}
+function render(){
+  var h = '', sw = me.q.sw;
+  if (m() === 'scoring' && sw) h += '<p class="key">' + sw.map(function(w, i){ return '<span>' + me.q.v[i] + '＝' + esc(w) + '</span>'; }).join('') + '</p>'; // 9段階の言葉は上に1か所（紙と同じ）
+  me.visits.forEach(function(v){ h += '<section class="set">' + (me.visits.length > 1 ? '<h2>セット' + v.set + '</h2>' : '') + setBody(v) + '</section>'; });
   $('sets').innerHTML = h; bar();
 }
 function bar(){
-  var n = left(), now = answerStr();
+  var n = left(), now = n ? null : answerStr();
   $('send').disabled = n > 0 || me.sent === now; // 送ったあとは、答えを直すまで押せない（「送りました」を見せたまま）
-  if (n > 0) status('あと' + n + 'セット選んでください。', '');
-  else if (me.sent === now) status('送りました。ありがとうございました。直すときは、選び直してもう一度「送る」を押してください。', 'ok');
+  if (n > 0) status(PICK[m()] ? 'あと' + n + 'セット選んでください。' : 'あと' + n + 'セット、答えていない所があります。', '');
+  else if (me.sent === now) status('送りました。直すときは選び直して、もう一度送ってください。', 'ok');
   else if (me.sent) status('直した答えは、まだ送っていません。', 'ng');
   else status('全部選びました。「送る」を押してください。', '');
 }
 $('sets').addEventListener('click', function(ev){
   var b = ev.target.closest('button[data-code]'); if (!b) return;
-  me.sel[+b.getAttribute('data-set')] = +b.getAttribute('data-code'); save(); render();
+  var set = +b.getAttribute('data-set'), c = +b.getAttribute('data-code'), s = me.sel[set];
+  if (PICK[m()]) me.sel[set] = c;
+  else {
+    s = s && typeof s === 'object' ? s : {};
+    if (b.hasAttribute('data-r')){ var r = +b.getAttribute('data-r'); if (s[c] === r) delete s[c]; else { for (var k in s) if (s[k] === r) delete s[k]; s[c] = r; } } // 同じ順位は1つだけ（前の方を消す）
+    else if (b.hasAttribute('data-s')){ var sk = c + '_' + b.getAttribute('data-t'), x = +b.getAttribute('data-s'); if (s[sk] === x) delete s[sk]; else s[sk] = x; }
+    else if (b.hasAttribute('data-none')){ if (s[c] && s[c].length === 0) delete s[c]; else s[c] = []; }
+    else { var w = +b.getAttribute('data-w'), l = (s[c] || []).slice(), at = l.indexOf(w); if (at >= 0) l.splice(at, 1); else l.push(w); if (l.length) s[c] = l; else delete s[c]; } // 言葉を全部消したら未回答に戻す
+    me.sel[set] = s;
+  }
+  save(); render();
 });
 $('send').addEventListener('click', function(){
   if (left()) return;
-  var a = answerStr(), btn = this; btn.disabled = true; status('送っています…', '');
+  var a = answerStr(), btn0 = this; btn0.disabled = true; status('送っています…', '');
   STORE.send(g, me.e, a, function(){ me.sent = a; save(); bar(); }).then(function(){ me.sent = a; save(); bar(); }, function(err){
-    btn.disabled = false;
+    btn0.disabled = false;
     status(err && err.offline ? '送れていません（電波がないようです）。つながる所で、もう一度「送る」を押してください。' : '送れていません。もう一度「送る」を押してください。', 'ng');
   });
 });
@@ -242,12 +344,15 @@ STORE.init().then(function(){ return STORE.claim(g); }).then(function(e){
   if (e === null){ msg('この組は見つかりません。係の人に知らせてください。'); return; }
   if (!e){ msg('もう満員です。係の人に知らせてください。'); return; }
   me.e = e;
-  return STORE.getSlot(g, e).then(function(s){
-    if (typeof s !== 'string' || !STORE.SLOT_RE.test(s)){ msg('読み込めませんでした。開き直してください。'); return; }
+  return Promise.all([STORE.getSlot(g, e), STORE.getQ(g)]).then(function(r){
+    var s = r[0], q = readQ(r[1]);
+    if (typeof s !== 'string' || !STORE.SLOT_RE.test(s) || !q){ msg('読み込めませんでした。開き直してください。'); return; }
+    me.q = q;
     var parts = s.split('|'), head = parts.shift(), start = +head.slice(0, -1), dir = head.slice(-1);
-    me.visits = parts.map(function(p){ var q = p.split(':'); return {set: +q[0], codes: q[1].split(',').map(Number)}; });
+    me.visits = parts.map(function(p){ var x = p.split(':'); return {set: +x[0], codes: x[1].split(',').map(Number)}; });
+    if (me.visits.some(function(v){ return PICK[m()] ? v.codes.length !== (m() === 'triangle' ? 3 : 2) : false; })){ msg('読み込めませんでした。開き直してください。'); return; }
     var old = load(); if (old){ me.sel = old.sel || {}; me.sent = old.sent || null; }
-    $('ev').textContent = e;
+    $('ev').textContent = e; $('ask').textContent = ask();
     if (me.visits.length > 1){ $('route').hidden = false; $('route').textContent = '開始セット：' + start + '・' + (dir === 'L' ? '左へ' : '右へ'); $('rinse').hidden = false; } // 紙の回答用紙と同じ「開始セット：3・左へ」
     msg(''); $('work').hidden = false; $('bar').hidden = false; render();
   });

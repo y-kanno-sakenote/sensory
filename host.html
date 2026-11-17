@@ -667,11 +667,14 @@ var CH = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // SHEET.GROUP_CHARS と同じ（0/
 var ROOM_RE = /^[2-9A-HJ-NP-Z]{6}$/, KEY_RE = /^[2-9A-HJ-NP-Z]{10}$/;
 // データの形（database.rules.json と同じ決まり。README の表）：
 // groups/$g/{host: 作った uid, hostkey: 秘密（誰も読めない）, hosts/$uid: 秘密（係の端末）, n: 枠の数,
-//            slots/$e: 並び, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
-// slots/$e＝「開始セット＋向き|セット:コード,コード,コード|…」（回る順・置き換えた後のコード）。中身（どれが違う1つか）は入れない
-var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9],[0-9][0-9][0-9],[0-9][0-9][0-9])+$/;
-// answers/$e/a＝「セット:選んだコード|…」
-var ANS_RE = /^[0-9][0-9]?:[0-9][0-9][0-9](\|[0-9][0-9]?:[0-9][0-9][0-9])*$/;
+//            slots/$e: 並び, q: 問い, claims/$e: uid, byuid/$uid: 番号, answers/$e: {a, t}}
+// slots/$e＝「開始セット＋向き|セット:コード,コード(,コード…)|…」（回る順・置き換えた後のコード・1セットに2〜8個）。中身・試料名は入れない
+var SLOT_RE = /^[0-9][0-9]?[RL](\|[0-9][0-9]?:[0-9][0-9][0-9](,[0-9][0-9][0-9])(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?(,[0-9][0-9][0-9])?)+$/;
+// q＝問い（JSON の文字。手法・比べるもの・言葉・尺度。答えるのに要る文だけで、試料名・正解・中身は入れない）。無い組（host.html の組）は3点試験法
+// answers/$e/a＝「セット:答え|…」。答え＝コード（3点・2点・1:2点）／コード,コード,…（順位法＝1位から）／
+//   コード=値.値,…（評点法＝比べるものの順の点・CATA＝選んだ言葉の番号1〜。何も無いときは「コード=」＝当てはまるものなし）
+var ANS_V = '(-[1-3]|1[0-9]|2[0-5]|[0-9])', ANS_E = '[0-9][0-9][0-9](=(' + ANS_V + '(\\.' + ANS_V + ')*)?)?', ANS_S = '[0-9][0-9]?:' + ANS_E + '(,' + ANS_E + ')*';
+var ANS_RE = new RegExp('^' + ANS_S + '(\\|' + ANS_S + ')*$'), ANS_MAX = 8000, Q_MAX = 4000;
 var log = []; // この端末が受け取ったデータの控え（点検用。画面には出さない）
 function rec(v){ try { log.push(JSON.parse(JSON.stringify(v === undefined ? null : v))); } catch (e) {} return v; }
 function rand(len){ var b = new Uint8Array(len), s = ''; crypto.getRandomValues(b); for (var i = 0; i < len; i++) s += CH[b[i] % 32]; return s; } // 256÷32 で偏りなし
@@ -697,7 +700,7 @@ function Local(){
   function view(d){ return isHost(d) ? {claims: d.claims || null, answers: d.answers || null} : null; } // 係が読めるのは claims と answers（hostkey は誰も読めない）
   function fire(g){ (watchers[g] || []).forEach(function(cb){ cb(view(read(g))); }); }
   this.init = function(){ return Promise.resolve(me); };
-  this.create = function(g, key, n, slots){ return locked(g, function(d){ if (d && d.host) throw new Error('exists'); var h = {}; h[me.uid] = key; return {write: {host: me.uid, hostkey: key, hosts: h, n: n, slots: slots}}; }); };
+  this.create = function(g, key, n, slots, q){ return locked(g, function(d){ if (d && d.host) throw new Error('exists'); var h = {}, w; h[me.uid] = key; w = {host: me.uid, hostkey: key, hosts: h, n: n, slots: slots}; if (q) w.q = q; return {write: w}; }); };
   this.register = function(g, key){ return locked(g, function(d){ if (!d || !d.hostkey) return {value: null}; if (d.hostkey !== key) throw denied(); d.hosts = d.hosts || {}; d.hosts[me.uid] = key; return {write: d, value: true}; }); };
   this.watch = function(g, cb){ (watchers[g] = watchers[g] || []).push(cb); var c = chan(g); if (c) c.addEventListener('message', function(){ cb(view(read(g))); });
     window.addEventListener('storage', function(ev){ if (ev.key === PRE + g) cb(view(read(g))); }); cb(view(read(g))); };
@@ -712,6 +715,9 @@ function Local(){
   this.getSlot = function(g, e){ var d = read(g); if (!d || !d.slots) return Promise.resolve(null);
     if (!((d.claims || {})[e] === me.uid || isHost(d))) return Promise.reject(denied()); // 自分の番号の並びだけ（係は全部）
     return Promise.resolve(d.slots[e] || null); };
+  this.getQ = function(g){ var d = read(g); if (!d) return Promise.resolve(null);
+    if (!((d.byuid || {})[me.uid] || isHost(d))) return Promise.reject(denied()); // 問いは番号を取った人と係だけ（ルールと同じ）
+    return Promise.resolve(d.q || null); };
   this.send = function(g, e, a){
     if (navigator.onLine === false) return Promise.reject(offlineErr());
     return locked(g, function(d){ if (!d || !d.claims || d.claims[e] !== me.uid) throw denied(); d.answers = d.answers || {}; d.answers[e] = {a: a, t: Date.now()}; return {write: d, value: true}; });
@@ -733,10 +739,10 @@ function Fire(){
   };
   function G(g){ return db.ref('groups/' + g); }
   // 作る：host を取ってから、hostkey・自分の hosts・枠の数・並びを1回の更新で（ルールは同じ更新の中の hostkey と比べる）
-  this.create = function(g, key, n, slots){
+  this.create = function(g, key, n, slots, q){
     return G(g).child('host').transaction(function(cur){ return cur ? undefined : me.uid; }).then(function(r){
       if (!r.committed || r.snapshot.val() !== me.uid) throw new Error('exists');
-      var u = {hostkey: key, n: n, slots: slots}; u['hosts/' + me.uid] = key;
+      var u = {hostkey: key, n: n, slots: slots}; if (q) u.q = q; u['hosts/' + me.uid] = key;
       return G(g).update(u);
     });
   };
@@ -770,6 +776,7 @@ function Fire(){
   // 組をまるごと消す：ルールが係（hosts/<自分>）だけに通す。先に見張りを外す（消したあとは answers を読めなくなる）
   this.remove = function(g){ G(g).child('claims').off(); G(g).child('answers').off(); return G(g).remove().then(function(){ return true; }, function(){ throw denied(); }); };
   this.getSlot = function(g, e){ return G(g).child('slots/' + e).get().then(function(s){ return s.val(); }); };
+  this.getQ = function(g){ return G(g).child('q').get().then(function(s){ return s.val(); }); };
   // 送る：つながっていないと SDK は書き込みを溜めて後で送るので、6秒で届かなければ「送れていない」と返し、届いたら onLate を呼ぶ
   this.send = function(g, e, a, onLate){
     var done = false, p = G(g).child('answers/' + e).set({a: a, t: firebase.database.ServerValue.TIMESTAMP}).then(function(){ done = true; return true; });
@@ -782,14 +789,15 @@ function Fire(){
 
 var impl = LOCAL ? new Local() : new Fire(), ready = null;
 return {
-  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, CH: CH, log: log,
+  LOCAL: LOCAL, FORCED: FORCED, ROOM_RE: ROOM_RE, KEY_RE: KEY_RE, SLOT_RE: SLOT_RE, ANS_RE: ANS_RE, ANS_MAX: ANS_MAX, Q_MAX: Q_MAX, CH: CH, log: log,
   randRoom: function(){ return rand(6); }, randKey: function(){ return rand(10); }, // 秘密＝32文字×10＝50ビット（crypto）
   init: function(){ return ready || (ready = impl.init().then(function(){ return {uid: impl.uid, mode: impl.mode}; })); }, // 何度呼んでも1回だけ
-  create: function(g, key, n, slots){ return impl.create(g, key, n, slots); },
+  create: function(g, key, n, slots, q){ return impl.create(g, key, n, slots, q); }, // q（問い）は無くてもよい（host.html は3点だけなので置かない）
   register: function(g, key){ return impl.register(g, key); },
   watch: function(g, cb){ return impl.watch(g, function(d){ cb(rec(d)); }); },
   claim: function(g){ return impl.claim(g).then(rec); },
   getSlot: function(g, e){ return impl.getSlot(g, e).then(rec); },
+  getQ: function(g){ return impl.getQ(g).then(rec); },
   remove: function(g){ return impl.remove(g); },
   send: function(g, e, a, onLate){ return impl.send(g, e, a, onLate); },
   onConn: function(cb){ return impl.onConn(cb); }
