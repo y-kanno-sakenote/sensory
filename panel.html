@@ -86,7 +86,7 @@ function Local(){
   function read(g){ try { var v = localStorage.getItem(PRE + g); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
   function chan(g){ if (!chans[g] && typeof BroadcastChannel !== 'undefined') chans[g] = new BroadcastChannel(PRE + g); return chans[g]; }
   function locked(g, fn){ // 読んで書くまでを1つの鍵で（ほかのタブと取り合わない＝トランザクションの代わり）
-    var run = function(){ return Promise.resolve().then(function(){ var d = read(g), r = fn(d); if (r && r.write){ localStorage.setItem(PRE + g, JSON.stringify(r.write)); var c = chan(g); if (c) c.postMessage(1); fire(g); } return r ? r.value : undefined; }); };
+    var run = function(){ return Promise.resolve().then(function(){ var d = read(g), r = fn(d); if (r && r.remove){ localStorage.removeItem(PRE + g); var c0 = chan(g); if (c0) c0.postMessage(1); fire(g); } if (r && r.write){ localStorage.setItem(PRE + g, JSON.stringify(r.write)); var c = chan(g); if (c) c.postMessage(1); fire(g); } return r ? r.value : undefined; }); };
     return navigator.locks && navigator.locks.request ? navigator.locks.request(PRE + g, run) : run();
   }
   function isHost(d){ return !!(d && d.hosts && d.hosts[me.uid] && d.hosts[me.uid] === d.hostkey); }
@@ -105,6 +105,7 @@ function Local(){
     for (var e = 1; e <= d.n; e++) if (!cl[e]){ cl[e] = me.uid; by[me.uid] = String(e); d.claims = cl; d.byuid = by; return {write: d, value: e}; }
     return {value: 0}; // 空きなし
   }); };
+  this.remove = function(g){ return locked(g, function(d){ if (!isHost(d)) throw denied(); return {remove: true, value: true}; }); }; // 組をまるごと消す：係だけ（ルールと同じ）
   this.getSlot = function(g, e){ var d = read(g); if (!d || !d.slots) return Promise.resolve(null);
     if (!((d.claims || {})[e] === me.uid || isHost(d))) return Promise.reject(denied()); // 自分の番号の並びだけ（係は全部）
     return Promise.resolve(d.slots[e] || null); };
@@ -163,6 +164,8 @@ function Fire(){
       return next();
     });
   };
+  // 組をまるごと消す：ルールが係（hosts/<自分>）だけに通す。先に見張りを外す（消したあとは answers を読めなくなる）
+  this.remove = function(g){ G(g).child('claims').off(); G(g).child('answers').off(); return G(g).remove().then(function(){ return true; }, function(){ throw denied(); }); };
   this.getSlot = function(g, e){ return G(g).child('slots/' + e).get().then(function(s){ return s.val(); }); };
   // 送る：つながっていないと SDK は書き込みを溜めて後で送るので、6秒で届かなければ「送れていない」と返し、届いたら onLate を呼ぶ
   this.send = function(g, e, a, onLate){
@@ -184,6 +187,7 @@ return {
   watch: function(g, cb){ return impl.watch(g, function(d){ cb(rec(d)); }); },
   claim: function(g){ return impl.claim(g).then(rec); },
   getSlot: function(g, e){ return impl.getSlot(g, e).then(rec); },
+  remove: function(g){ return impl.remove(g); },
   send: function(g, e, a, onLate){ return impl.send(g, e, a, onLate); },
   onConn: function(cb){ return impl.onConn(cb); }
 };
