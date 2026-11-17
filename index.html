@@ -1,0 +1,1565 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>評価方法えらび</title>
+<style>
+:root{--bg:#faf8f4;--card:#fff;--ink:#222;--sub:#666;--line:#ddd6ca;--accent:#2f5d8a;--accent-bg:#e8eff6;--warn:#8a4b12;--warn-bg:#fbf0e3}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17191c;--card:#22252a;--ink:#e8e6e1;--sub:#a3a09a;--line:#3a3d43;--accent:#8fb6dd;--accent-bg:#26323f;--warn:#e0b07a;--warn-bg:#3a2e22}}
+:root[data-theme="dark"]{--bg:#17191c;--card:#22252a;--ink:#e8e6e1;--sub:#a3a09a;--line:#3a3d43;--accent:#8fb6dd;--accent-bg:#26323f;--warn:#e0b07a;--warn-bg:#3a2e22}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.7;font-size:16px}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.3rem;margin:.4em 0 .2em}
+.lead{color:var(--sub);font-size:.9rem;margin:0 0 1em}
+fieldset{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:0 0 10px;padding:10px 12px}
+legend{font-weight:600;padding:0 4px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts label{border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:.95rem}
+.opts input{position:absolute;opacity:0;pointer-events:none}
+.opts label:has(input:checked){background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:600}
+.opts label:has(input:focus-visible){outline:2px solid var(--accent)}
+select{font-size:1rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.method{border:2px solid var(--accent);border-radius:12px;background:var(--card);padding:12px 14px;margin:14px 0}
+details.method{border-width:1px;border-color:var(--line)}
+details.method summary{cursor:pointer;font-weight:600}
+details.more{margin-top:8px}
+details.more summary{cursor:pointer;color:var(--accent);font-size:.95rem}
+h2{font-size:1.15rem;margin:0 0 .3em}
+h3{font-size:.95rem;margin:1em 0 .2em;color:var(--accent)}
+.reason{background:var(--accent-bg);border-radius:8px;padding:8px 10px;font-size:.95rem}
+.note{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:.9rem;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+ul{margin:.2em 0;padding-left:1.2em}
+.src{color:var(--sub);font-size:.8rem}
+.end{color:var(--sub);font-size:.8rem;margin:20px 0}
+.free{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:0 0 10px;padding:10px 12px}
+.free summary{font-weight:600;cursor:pointer}
+.free textarea,.free input[type=password]{width:100%;font-size:1rem;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit}
+.free .row{display:flex;gap:6px;align-items:center;margin:6px 0}
+.free button{font-size:.95rem;padding:5px 12px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer}
+.free button:disabled{opacity:.5;cursor:default}
+.need legend::after{content:'　ここを選んでください';color:var(--warn);font-weight:400;font-size:.85rem}
+.msg{font-size:.9rem;margin:6px 0}
+.sheetbtn{font-size:.95rem;padding:5px 12px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer;margin:8px 0}
+#sheet{border:2px solid var(--accent);border-radius:12px;background:var(--card);padding:12px 14px;margin:14px 0}
+#sheet input[type=text]{font-size:1rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:10em}
+#sheet .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+#sh-more summary{cursor:pointer;color:var(--accent);font-size:.95rem}
+#sheet .row[hidden]{display:none}
+#sheet button{font-size:.95rem;padding:5px 12px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer}
+.paper{background:#fff;color:#1d1d1d;border:1px solid #d8d2c6;padding:10mm 8mm;margin:10px 0;font-size:12px;line-height:1.6;overflow-x:auto}
+.paper h4{font-size:16px;margin:0 0 4px;color:#2b4a6f}
+.paper h5{font-size:13px;margin:12px 0 4px;color:#2b4a6f}
+.paper table{font-size:12px;width:auto}
+.paper th,.paper td{border:1px solid #d8d2c6;padding:3px 6px}
+.paper th{background:#eef3f8}
+.paper .q{font-size:14px}
+.paper table.sc{margin:4px 0}
+.paper .wno{font-size:9px;color:#777}
+.paper .key{font-size:12px;margin:2px 0 4px}
+.paper table.sc td.num{width:7mm;text-align:center;font-size:13px}
+.paper table.sc th{font-size:10px;font-weight:400;text-align:center;white-space:nowrap}
+.m4 .paper table.sc td.num{width:5mm;font-size:12px}
+.cups{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.cup{border:1px solid #2b4a6f;border-radius:8px;width:30mm;padding:6px 4px;text-align:center}
+.cup b{display:block;font-size:22px;letter-spacing:.1em}
+.cup .rank{display:block;height:16mm;border:1px solid #d8d2c6;border-radius:6px;margin-top:6px;font-size:10px;color:#777}
+.fill{display:inline-block;min-width:35mm;border-bottom:1px solid #333}
+.grp{float:right;font-size:9px;color:#777;letter-spacing:.05em}
+.rep{display:flex;align-items:center;gap:8px;margin:4px 0}
+.rep .replabel{font-weight:600;color:#2b4a6f;min-width:3.5em}
+.rep .cups{margin:4px 0}
+.sheetpage{display:grid;background:#fff}
+.sheetpage.m2{grid-template-rows:1fr 1fr}
+.sheetpage.m4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.slot{position:relative;min-width:0}
+.m2 .slot+.slot,.m4 .slot:nth-child(n+3){border-top:1px dashed #777}
+.m4 .slot:nth-child(2n){border-left:1px dashed #777}
+.m2 .slot+.slot::before,.m4 .slot:nth-child(3)::before{content:'✂';position:absolute;top:-.75em;left:2mm;background:#fff;color:#555;font-size:13px;line-height:1}
+.m4 .cup{width:24mm}
+.m4 .paper h4{font-size:14px}
+.m4 .paper .q{font-size:13px}
+.recall{font-size:11px;color:#555}
+#tally{border:2px solid var(--accent);border-radius:12px;background:var(--card);padding:12px 14px;margin:14px 0}
+#tally input[type=text]{font-size:1.1rem;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+#tally .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+#tally button{font-size:1rem;min-height:44px;padding:6px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer}
+#tally .tl-set{border-top:1px solid var(--line);padding:8px 0}
+#tally .tl-lab{font-weight:600;color:var(--accent)}
+#tally .tl-codes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin:8px 0}
+#tally button.tl-code{font-size:1.5rem;padding:0;min-height:64px;letter-spacing:.08em;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+#tally .tl-rrow{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:8px 0}
+#tally .tl-rc{font-size:1.3rem;font-weight:700;min-width:3.2em;letter-spacing:.06em}
+#tally .tl-cg{display:grid;gap:4px;margin:2px 0 6px}
+#tally .tl-wl{font-weight:600;margin-top:6px}
+#tally button.tl-cb{min-height:48px;font-size:.95rem;padding:0;letter-spacing:0;border:2px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
+#tally .tl-srow{border-top:1px dashed var(--line);padding:6px 0}
+#tally .tl-it{font-size:.85rem;color:var(--sub);margin:4px 0 2px}
+#tally .tl-sb{display:grid;gap:4px}
+#tally .tl-rb{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;flex:1 1 0;min-width:0}
+#tally .tl-wide .tl-rb{flex-basis:100%}
+#tally button.tl-r{min-height:52px;font-size:1.2rem;padding:0;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+#tally button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card)}
+#tally button:disabled{opacity:.35;cursor:default}
+#tally details{font-size:.85rem;color:var(--sub);margin:6px 0}
+#tally .tl-big{font-size:1.4rem;font-weight:700;margin:.5em 0 .2em}
+#tally details.tl-rep{color:var(--ink)}
+#tally details.tl-rep>summary{color:var(--accent);cursor:pointer}
+.tl-rep h4{font-size:.95rem;margin:1em 0 .3em;color:var(--accent)}
+.tl-rep h5{font-size:.9rem;margin:.8em 0 .2em}
+.tl-rep p{margin:.3em 0}
+.tl-meta{border-bottom:1px solid var(--line);padding:4px 0;margin:6px 0}
+.tl-meta p{margin:0}
+.tl-ptitle{display:none}
+.tl-tw{overflow-x:auto;max-width:100%;margin:4px 0 8px}
+.tl-t{width:auto;min-width:60%;font-size:.85rem}
+.tl-t th,.tl-t td{white-space:nowrap;padding:3px 8px}
+.tl-t td{text-align:right;font-variant-numeric:tabular-nums}
+.tl-t thead th{border-bottom:2px solid var(--line)}
+#tally select{font-size:1.1rem;min-height:44px}
+#tabs{position:sticky;top:0;z-index:10;background:var(--bg);display:flex;gap:6px;padding:8px 0}
+#tabs button{flex:1;min-height:48px;font-size:1rem;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+#tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:600}
+body:not(.sheet-open) #tab-sheet{opacity:.45}
+@media screen{
+  body:not([data-tab="sheet"]):not([data-tab="tally"]) #sheet, body[data-tab="tally"] #sheet{display:none !important}
+  body[data-tab="sheet"] #pane-pick, body[data-tab="tally"] #pane-pick{display:none}
+  body:not([data-tab="tally"]) #tally{display:none !important}
+  body:not(.pour-shown) #pr-pour{display:none}
+  #pr-answers .sheetpage:not(:first-child){display:none}
+}
+@media print{ tr{break-inside:avoid;page-break-inside:avoid}
+  @page{size:A4;margin:12mm}
+  body.sheet-open{background:#fff}
+  body.sheet-open main>*:not(#sheet){display:none !important}
+  body.sheet-open #sheet{border:0;padding:0;margin:0}
+  body.sheet-open #sheet .screen-only{display:none !important}
+  .paper{border:0;padding:0;margin:0}
+  #pr-pour .paper{break-after:page}
+  #pr-answers .sheetpage{break-after:page}
+  #pr-answers .sheetpage:last-child{break-after:auto}
+  body.sheet-open main{padding:0;max-width:none}
+  #pr-answers .sheetpage.m2,#pr-answers .sheetpage.m4{height:268mm;overflow:hidden}
+  #pr-answers .slot{overflow:hidden}
+  #pr-answers .m2 .paper,#pr-answers .m4 .paper{padding:5mm 4mm}
+  body:not([data-print="pour"]) #pr-pour{display:none}
+  body[data-print="pour"] #pr-answers{display:none}
+  #tally,#tabs,#tab-msg{display:none !important}
+  /* 結果を保存：レポートだけ（ほかの印刷＝注ぎ表・回答用紙は data-print が pour／無し のときのまま） */
+  html body[data-print="report"]{background:#fff;color:#222;--ink:#222;--sub:#555;--line:#bbb;--accent:#2f5d8a;--card:#fff;--bg:#fff}
+  html body[data-print="report"] main{padding:0;max-width:none}
+  html body[data-print="report"] main>*:not(#tally){display:none !important}
+  html body[data-print="report"] main>#tally{display:block !important;border:0;padding:0;margin:0}
+  html body[data-print="report"] #tally>*:not(#tl-work),html body[data-print="report"] #tl-work>*:not(#tl-res),html body[data-print="report"] #tl-res>*:not(.tl-rep){display:none !important}
+  html body[data-print="report"] .tl-rep>summary{display:none}
+  html body[data-print="report"] .tl-ptitle{display:block;font-size:14pt;font-weight:bold;margin:0 0 .4em}
+  html body[data-print="report"] #tally details.tl-rep{font-size:11pt;margin:0}
+  html body[data-print="report"] .tl-tw{overflow:visible}
+  html body[data-print="report"] .tl-t th,html body[data-print="report"] .tl-t td{white-space:normal}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>評価方法えらび</h1>
+<nav id="tabs" role="tablist"><button type="button" role="tab" id="tab-pick" aria-selected="true">選ぶ</button><button type="button" role="tab" id="tab-sheet" aria-selected="false">紙を作る</button><button type="button" role="tab" id="tl-open" aria-selected="false">打ち込む</button></nav>
+<p class="msg" id="tab-msg" role="status"></p>
+<div id="pane-pick">
+<p class="lead">何をどう測りたいかを選ぶと、評価方法をしぼります。自分たちで測るための手引きです。評価書や認定には使えません。</p>
+
+
+<form id="f">
+<fieldset id="q1"><legend>何を知りたい？</legend><div class="opts">
+<label><input type="radio" name="goal" value="pref">お客さんの好み</label>
+<label><input type="radio" name="goal" value="ana">物の違い・強さ・特徴</label>
+</div></fieldset>
+<fieldset id="q2p" hidden><legend>好みの何を？</legend><div class="opts">
+<label><input type="radio" name="q2" value="pair">2つのうち、どちらが好まれるか</label>
+<label><input type="radio" name="q2" value="degree">好ましさの程度（点数で）</label>
+<label><input type="radio" name="q2" value="jar">ちょうどよいか（強すぎ・弱すぎ）</label>
+<label><input type="radio" name="q2" value="rank">3つ以上の好みの順</label>
+</div></fieldset>
+<fieldset id="q2a" hidden><legend>物の何を？</legend><div class="opts">
+<label><input type="radio" name="q2" value="disc">差があるか、ないか</label>
+<label><input type="radio" name="q2" value="feat">どんな特徴か・どう違うか（言葉や点数で）</label>
+</div></fieldset>
+<fieldset id="q3d" hidden><legend>何の差を？</legend><div class="opts">
+<label><input type="radio" name="q3" value="tri">全体として違うか（2つ）</label>
+<label><input type="radio" name="q3" value="duo">見本と同じか（2つ）</label>
+<label><input type="radio" name="q3" value="pdiff">決めた性質はどちらが強いか（2つ）</label>
+<label><input type="radio" name="q3" value="rankint">決めた性質の強さの順（3つ以上）</label>
+</div></fieldset>
+<fieldset id="q3f" hidden><legend>どんな特徴を？</legend><div class="opts">
+<label><input type="radio" name="q3" value="cata">言葉で手早く</label>
+<label><input type="radio" name="q3" value="qda">いくつもの性質を点数でくわしく</label>
+<label><input type="radio" name="q3" value="scoring">1つの性質を点数で</label>
+<label><input type="radio" name="q3" value="change">対照からの変わり方（保存・劣化など）</label>
+<label><input type="radio" name="q3" value="sd">製品の印象（高級な―庶民的な など）</label>
+</div></fieldset>
+<fieldset id="q4" hidden><legend>評価する人</legend><div class="opts">
+<label><input type="radio" name="panel" value="trained">訓練した人</label>
+<label><input type="radio" name="panel" value="untrained">訓練していない人</label>
+</div></fieldset>
+</form>
+<details class="free" id="free"><summary>文章で書く（APIキーがある人向け）</summary>
+<textarea id="ftext" rows="3" placeholder="例：新しい純米酒と去年のものに違いがあるか、きき酒の訓練をした蔵の人8人で確かめたい" aria-label="測りたいことを文章で"></textarea>
+<div class="row"><button type="button" id="fgo">項目に置き換える</button></div>
+<p class="msg" id="fmsg" role="status"></p>
+<p class="src">入れた文章は Claude（Anthropic社）に送られます。保存はしません。置き換えるのは下の問いの答えだけで、手法は下の判定表が選びます。</p>
+<div class="row"><input type="password" id="fkey" autocomplete="off" placeholder="sk-ant-…" aria-label="Anthropic API キー"><button type="button" id="fkeydel">消す</button></div>
+<p class="src">キーはこの端末のブラウザにだけ保存されます。</p>
+</details>
+
+<div id="out" aria-live="polite"></div>
+<p class="note" id="sh-closed" hidden></p>
+</div>
+<section id="sheet" hidden>
+<div class="screen-only">
+<h2 id="sh-title">評価シート</h2>
+<div id="sh-names"></div>
+<div class="row" id="sh-deskrow">1人が回るセットの数（机に並べる数） <select id="sh-desks" aria-label="1人が回るセットの数"></select></div>
+<div class="row">刷る人数 <select id="sh-blocks" aria-label="刷る人数"></select></div>
+<details id="sh-more"><summary>くわしい設定</summary>
+<div class="row">サンプル番号 <label><input type="radio" name="sh-code" value="each"> 人ごとに変える</label> <label><input type="radio" name="sh-code" value="shared"> 番号だけ全員で同じ</label> <label><input type="radio" name="sh-code" value="desk" checked> 机に並べる方式（番号も並びも全員で同じ）</label></div>
+<div class="row" id="sh-repsrow">1人の回数 <select id="sh-reps" aria-label="1人の回数"><option value="1">1回</option><option value="2">2回</option><option value="3">3回</option><option value="4">4回</option><option value="5">5回</option></select></div>
+</details>
+<p class="src" id="sh-trials"></p>
+<p class="src" id="sh-recall"></p>
+<div class="row">回答用紙 <select id="sh-per" aria-label="1枚に何人分"><option value="1">1枚に1人分</option><option value="2">1枚に2人分</option><option value="4">1枚に4人分</option></select></div>
+<div class="row"><button type="button" id="sh-redo">コードを引き直す（印刷した紙とは合わなくなります）</button><button type="button" id="sh-showpour" aria-pressed="false">注ぎ表を見る</button><button type="button" id="sh-ppour">注ぎ表を印刷</button><button type="button" id="sh-pans">回答用紙を印刷</button><button type="button" id="sh-close">閉じる</button></div>
+<p class="msg" id="sh-msg" role="status"></p>
+<p class="src">印刷では、押したボタンの紙だけが出ます（ボタンを使わずに印刷したときは回答用紙だけ）。</p>
+</div>
+<div id="pr-pour"></div>
+<div id="pr-answers"></div>
+</section>
+<section id="tally" hidden>
+<h2>回答を打ち込む</h2>
+<div id="tl-find">
+<div class="row"><label>組 <input type="text" id="tl-grp" maxlength="3" size="4" autocapitalize="characters" autocomplete="off" aria-label="組"></label></div>
+<div class="row"><label>呼び出し番号 <input type="text" id="tl-key" size="12" autocapitalize="characters" autocomplete="off" aria-label="呼び出し番号"></label></div>
+<p class="src">組は回答用紙の右上に、呼び出し番号は注ぎ表にあります。この端末で作った組なら、組だけで開けます。</p>
+<div class="row"><button type="button" id="tl-go">開く</button></div>
+</div>
+<p class="msg" id="tl-msg" role="status"></p>
+<div id="tl-work" hidden>
+<p class="src" id="tl-head"></p>
+<div id="tl-names"></div>
+<div class="row"><label>評価者 <select id="tl-ev" aria-label="評価者番号"></select></label></div>
+<div id="tl-sets"></div>
+<div class="row"><button type="button" id="tl-prev">← 前の人</button><button type="button" id="tl-next">次の人 →</button></div>
+<p class="src" id="tl-hint"></p>
+<p class="src" id="tl-prog"></p>
+<div class="row"><button type="button" id="tl-sum">集計する</button><button type="button" id="tl-csv">Excel用に保存</button><button type="button" id="tl-close">閉じる</button></div>
+<div id="tl-res" aria-live="polite"></div>
+</div>
+</section>
+</main>
+
+<script id="core">
+// ===== 判定の表データ（docs/method_selector.md と同じもの・ここ1か所だけ） =====
+var CORE = (function(){
+var K = '官能評価士テキスト', S = 'sensR 解説文書（methodology）', O = 'OpenIntro統計学入門（日本語訳）', HY = '早川文代 2013（日本調理科学会誌）', KU = '國枝里美 2012（日本醸造協会誌）', NI = '二瓶ほか 2025（抄録）';
+var METHODS = {
+  triangle:{name:'3点試験法', short:'3つのうち1つだけ違うものを選ぶ', samples:'2種類（3個を出す）', p0:1/3, discrim:true,
+    fit:'AとBに違いがあるかを、どこが違うかを決めずに確かめたい', unfit:null,
+    howto:['組合せ AAB・ABA・ABB・BAA・BBA・BAB の6種類をすべて使い、人に割り当てる（p.162）','横一列ではなく、円形で方向性のない並べ方にする（p.163）'],
+    refs:[K+' p.162（異なる1個を選ばせる。当て推量の確率1/3）','同 p.163 二項分布で検定']},
+  duotrio:{name:'1:2点試験法', short:'見本を覚えてから、2つのどちらが見本と同じかを選ぶ', samples:'2種類（見本＋1組）', p0:1/2, discrim:true,
+    fit:'違いの中身が分からないまま、全体として違うかを見たい', unfit:null,
+    howto:['先に見本を出して特徴を覚えてもらい、その後に2つを出す（p.164）'],
+    refs:[K+' p.164（違いの中身が分からなくても使える。片側検定。当て推量の確率1/2）']},
+  paired_diff:{name:'2点試験法（差）', short:'2つのどちらが甘いかなどを選ぶ', samples:'2', p0:1/2, discrim:true,
+    fit:'甘さなど、決めた1つの性質がどちらで強いかを見たい', unfit:'違いの中身が分からないとき（そのときは1:2点試験法＝p.164）',
+    howto:['「どちらが甘い」のように、問う性質を1つに決めてから出す（p.159）'],
+    refs:[K+' p.159（量の違いを判断させる。片側の二項検定。当て推量の確率1/2）']},
+  paired_pref:{name:'2点試験法（好み）', short:'2つのどちらが好きかを選ぶ', samples:'2', p0:1/2, discrim:false, twoSided:true,
+    fit:'2つのどちらが好まれるかを見たい', unfit:'違いの識別（好みには客観的な順位がない＝p.159）',
+    howto:['好ましい方を1つ選んでもらう（p.159）'],
+    refs:[K+' p.159（両側の二項検定）','同 p.161（2点嗜好法は両側検定）']},
+  ranking:{name:'順位法', short:'強さや好みの順に並べる', samples:'数個（p.169）', discrim:false,
+    fit:'濃度など順のある試料を並べてもらう（p.169）／好みの順位に差があるかを見る（p.171）', unfit:'程度の大きさを数で扱いたいとき（点数の方が分析の幅が広がる＝p.78）',
+    howto:['試料はランダムな順に出す（p.169）','同じ順位を許すかどうかを先に決める（p.171）'],
+    refs:[K+' p.169（ランダムに出した数個の試料を濃度の順に並べる。スピアマンの順位相関）','同 p.171（試料の間の順位の差を検定。フリードマンの順位検定）']},
+  scoring:{name:'評点法', short:'強さや好みを点数でつける', samples:'1種以上（p.194）', discrim:false,
+    fit:'強さや好みの程度を点数で比べたい', unfit:null,
+    howto:['点数の目盛りにどこまで言葉を添えるかを決める（全部／一部／両端だけ＝p.195）','真ん中の点に答えが集まりやすい（p.78）'],
+    refs:[K+' p.194（数値の尺度で点数をつける）','同 p.78（採点法＝評点法）']},
+  cata:{name:'CATA法', short:'当てはまる言葉にチェックをつける', samples:'複数（例は4種類＝p.181）', discrim:false,
+    fit:'言葉のチェックリストで特徴を出し、言葉ごとに試料の差を見る', unfit:null,
+    howto:['同じ人に全試料を評価してもらうか、試料ごとに別の人にするかを先に決める（集計のしかたが変わる＝p.181）'],
+    refs:[K+' p.180（特徴に当てはまる用語にチェックしてもらう）','同 p.181（コクランのQ検定）']},
+  hedonic:{name:'評点法（9段階の好き嫌い）', short:'「非常に好き」〜「非常に嫌い」の9段階で好ましさに点をつける', samples:'1種以上（p.194）', discrim:false, sheet:'scoring', sheetScale:3,
+    fit:'試料ごとの好ましさの程度を点数で比べたい', unfit:null,
+    howto:['好みや受け入れやすさを聞くときは、9段階の好き嫌いの尺度がよく使われる（p.117）','両端の「非常に好き」「非常に嫌い」に答えが出にくい傾向があるとの指摘もある。また、目盛りが等間隔とは限らない（p.118）'],
+    refs:[K+' p.117（9段階嗜好尺度がよく使われる）・表3-8（井上の用語：非常に好き〜非常に嫌い）','同 p.118（目盛りが等間隔とは限らず、統計解析に制約がある）','同 p.146-149（二元配置の分散分析）']},
+  jar:{name:'JAR尺度（ちょうどよさを聞く方法）', short:'性質ごとに「弱すぎる〜ちょうどよい〜強すぎる」で聞きます。', samples:'1種以上', discrim:false, nosheet:true,
+    fit:'甘さなどが「ちょうどよい」か、強すぎ・弱すぎで好まれにくくなっているかを知りたい', unfit:null,
+    howto:['5段階（1＝弱すぎる〜3＝ちょうどよい〜5＝強すぎる）で聞く例がある','ペナルティ分析：「ちょうどよい」と答えた人に比べて、強すぎ・弱すぎと答えた人で好ましさがどれだけ下がるかを見る','判定の目安（何%以上の回答があれば扱うか）は手元の資料にありません'],
+    refs:[NI+' p.156（5段階の JAR 尺度で評価した例）・p.157（ペナルティ分析）']},
+  scoring_ctrl:{name:'評点法（対照あり）', short:'対照と、日数などを置いた試料に点をつけ、対照と比べる', samples:'3以上（1つ目が対照）', discrim:false, sheet:'scoring', sheetCtrl:true,
+    fit:'劣化・保存試験のように、対照と比べてどの試料から変わったかを見たい', unfit:null,
+    howto:['1つ目の試料を対照にする（紙にはコードだけが出るので、評価する人には対照と分からない）','同じ人が全部の試料を同じ回に評価する前提です（対照を保存して最後にまとめて評価する形）。日ごとに別々に評価した結果はこの計算では扱えません。','差があるときは、対照とほかの試料の組だけを比べる'],
+    refs:[K+' p.194（評点法）','同 p.153（ダネットの方法：対照と他の試料の間だけを検定する）','同 p.152-153（ボンフェローニの方法：1対当たりの有意水準を検定する数で割る）','同 p.144（対応のある t 検定）','同 p.146-149（二元配置の分散分析）']},
+  sd:{name:'SD法', short:'製品の印象（高級な―庶民的な など）が分かります。', samples:'1種以上', discrim:false, nosheet:true,
+    fit:'製品の印象を測りたい', unfit:'属性を特定する方法としては向かない（p.199）',
+    howto:['反対の意味の言葉の組（高級な―庶民的な など）で印象を聞く','意味尺度どうしの解析にはプロフィール分析や因子分析が使われる（p.199・p.230-235）','だれに頼むかはテキストに書かれていない'],
+    refs:[K+' p.199（製品の印象を測る方法。解析にはプロフィール分析や因子分析）','同 p.230-235（因子分析）']},
+  qda:{name:'QDA法', short:'用語集の言葉ごとに、強さを点数でくわしくつける', samples:'1種以上', discrim:false, sheet:'scoring',
+    fit:'試料の特徴を、言葉ごとの強さの数字でくわしく比べたい', unfit:null,
+    howto:['5名以上の訓練した人か熟練した人で行う（p.196）','先に用語集を作っておく（p.196）','紙と集計は、評点法（比べるものを複数）で代わりにできる'],
+    refs:[K+' p.196（用語集の言葉ごとに強さを数値化する。5名以上の訓練した人か熟練者）']}
+};
+var RULES = [ // 精査した決定木（docs/tree_review.md・2026-11-09）。旧規則との対応は docs/method_selector.md §4
+  {id:'U1', goal:'pref', q2:'pair', panel:'any', pick:['paired_pref'], reason:'2つのうち、どちらが好まれるかが分かります。', refs:[K+' p.159・p.161（両側の二項検定）']},
+  {id:'U2', goal:'pref', q2:'degree', panel:'any', pick:['hedonic'], reason:'試料ごとの好ましさの程度が、点数で分かります。', refs:[K+' p.117-118（9段階嗜好尺度）']},
+  {id:'U3', goal:'pref', q2:'jar', panel:'any', pick:['jar'], reason:'性質ごとに「ちょうどよい」か、強すぎ・弱すぎかが分かります。', refs:[NI+' p.156-157']},
+  {id:'U4', goal:'pref', q2:'rank', panel:'any', pick:['ranking'], reason:'好みの順に差があるかが分かります。', refs:[K+' p.171-172（フリードマンの順位検定）']},
+  {id:'U5', goal:'ana', q2:'disc', q3:'tri', panel:'any', pick:['triangle'], reason:'2つの試料に、全体として違いがあるかが分かります（何が違うかは問いません）。', refs:[K+' p.162（当て推量の確率 1/3）']},
+  {id:'U6', goal:'ana', q2:'disc', q3:'duo', panel:'any', pick:['duotrio'], reason:'いつもの品（見本）と同じかが分かります。どんな違いかが分からなくても使えます。', refs:[K+' p.164']},
+  {id:'U7', goal:'ana', q2:'disc', q3:'pdiff', panel:'any', pick:['paired_diff'], reason:'決めた性質（甘さなど）が、2つのどちらで強いかが分かります。', refs:[K+' p.159（片側の二項検定）']},
+  {id:'U8', goal:'ana', q2:'disc', q3:'rankint', panel:'any', pick:['ranking'], reason:'決めた性質の強さの順に並べられるかが分かります。', refs:[K+' p.169']},
+  {id:'U9', goal:'ana', q2:'feat', q3:'cata', panel:'any', pick:['cata'], reason:'試料ごとの特徴が言葉で分かります。', refs:[K+' p.180-182（CATA法）']},
+  {id:'U10', goal:'ana', q2:'feat', q3:'qda', panel:'trained', pick:['qda'], reason:'いくつもの性質の強さが、数字でくわしく分かります。', refs:[K+' p.196（QDA法）']},
+  {id:'U10u', goal:'ana', q2:'feat', q3:'qda', panel:'untrained', pick:['cata'], reason:'いくつもの性質を点数でくわしくつける方法は、訓練した人で行います。訓練していない人なら、当てはまる言葉を選ぶ方法で特徴が分かります。', refs:[K+' p.196（QDA法は5名以上の訓練パネルまたは熟練者）','同 p.78（中心化傾向）']},
+  {id:'U11', goal:'ana', q2:'feat', q3:'scoring', panel:'trained', pick:['scoring'], reason:'1つの性質の強さが、試料ごとの点数で分かります。', refs:[K+' p.194-195（評点法）']},
+  {id:'U11u', goal:'ana', q2:'feat', q3:'scoring', panel:'untrained', pick:['ranking'], reason:'訓練していない人は点数をつけると真ん中に寄りやすいので、点数の方法は勧めません。強さの順に並べる方法なら分かります。', refs:[K+' p.78（中心化傾向）','同 p.169（順位法）']},
+  {id:'U12', goal:'ana', q2:'feat', q3:'change', panel:'trained', pick:['scoring_ctrl'], reason:'対照と比べて、どの試料から強さが変わったかが分かります。', refs:[K+' p.153（ダネットの方法：対照と他の試料の間だけで検定）','同 p.152-153（ボンフェローニの方法）']},
+  {id:'U12u', goal:'ana', q2:'feat', q3:'change', panel:'untrained', pick:['ranking'], reason:'決めた性質の強さの順に並べられるかが分かります。訓練していない人は点数をつけると真ん中に寄りやすいので、点数の方法は勧めません。対照との比べは、訓練した人の評点法が向きます。', refs:[K+' p.169（順位法）','同 p.78（中心化傾向）','同 p.153（ダネットの方法）']},
+  {id:'U13', goal:'ana', q2:'feat', q3:'sd', panel:'any', pick:['sd'], reason:'製品の印象（高級な―庶民的な など）が分かります。', refs:[K+' p.199（SD法）']}
+];
+// 問いの流れ（tree_review.md）：好み＝Q1→Q2-A／分析型＝Q1→Q2-B→Q3-B1 か Q3-B2→評価する人。選ぶタブでは試料の数も人数も聞かない（人数は前もって決まらない＝2026-11-13）
+var Q2 = {pref:['pair','degree','jar','rank'], ana:['disc','feat']};
+var Q3 = {disc:['tri','duo','pdiff','rankint'], feat:['cata','qda','scoring','change','sd']};
+function samplesOf(inp){ return (inp.q2 === 'pair' || inp.q3 === 'tri' || inp.q3 === 'duo' || inp.q3 === 'pdiff') ? '2' : (inp.q2 === 'rank' || inp.q3 === 'rankint') ? '3-5' : null; } // 紙の試料の数の始まり（枝が数を決めるときだけ）
+function purposeOf(inp){ if (inp.goal === 'pref') return 'pref'; var q = inp.q3; return (q === 'tri' || q === 'duo') ? 'diff' : (q === 'pdiff' || q === 'rankint' || q === 'scoring' || q === 'change') ? 'intensity' : (q === 'cata' || q === 'qda' || q === 'sd') ? 'describe' : null; }
+function complete(inp){ return inp.goal === 'pref' ? Q2.pref.indexOf(inp.q2) >= 0 : inp.goal === 'ana' && Q2.ana.indexOf(inp.q2) >= 0 && Q3[inp.q2].indexOf(inp.q3) >= 0 && !!inp.panel; }
+var NOTES = {
+  N1:'好みは訓練の要らない人で、調べたい相手（お客さん）を代表するように集めます。部署の中で予備的に好みを聞くのは、厳密にはお客さんの評価ではありません（p.85）。',
+  N2:'違いや強さを測る人は、本来は訓練した人たちです（p.11）。結果は「この人たちが分かったか」として読みます。',
+  N3:'1回に評価する試料は、ふつう3種類ほど、多くても5種類ほどが望ましいとされます（p.108）。評点法で試料が多いときは、1人に全部を出さない組み方（つり合い不完備型計画）を使います（p.195）。',
+  N4:'この表は1人1回で数えています。1人に何セットかやってもらうときは、評価シートでセットの数を選ぶと総試行での見込みも出ますが、人によって見分ける力が違うと、その見込みは甘くなることがあります（sensR p.12）。'
+};
+// 識別試験以外の人数の目安（目的と評価者で選ぶ）
+var PEOPLE = {
+  pref:{min:50, text:'好みを聞く人数は諸説ありますが、予備的な試験でも50人ほど必要と言われます。', ref:HY+' p.40（予備試験でも50人程度）／'+KU+' p.743（嗜好型は数十〜数百名）／'+K+' p.91（予備試験でも50〜60人程度。ISO は60人以上を推奨。ただし人数を増やすだけで結論が妥当になるわけではない）'},
+  trained:{min:10, text:'訓練した人なら、10〜20人ほどのことが多いとされます（p.86）。', ref:K+' p.86（10〜20人程度が多い）'},
+  untrained:{min:20, text:'訓練していない人の場合、近い手法（格付け法）で強弱を測るときの目安は20人以上です（p.177）。', ref:K+' p.177 格付け法（訓練していない人なら20以上）（好みの程度なら2試料50名以上・3試料100名以上）'}
+};
+// カードの見える所の「だれに・何人」（tree_review.md 手法のカード）
+var WHO = {pref:{text:'調べたい相手（お客さん）を代表する人で。予備的な試験でも50人ほど、本格的には数百人です。', min:50},
+  ana:{text:'選んで訓練した人で。10〜20人ほどが目安です。', min:10}, qda:{text:'訓練した人5名以上で。', min:5}};
+var COMMON_HOWTO = [
+  '試料の記号は3ケタのランダムな数字にする（1ケタの記号や数字には好みや意味が入る＝p.109）',
+  '出す順番で評価が偏るので、順番に配慮する（p.78-79）',
+  '試料の温度の差が出ないようにし、量を揃える（p.106）',
+  '口ゆすぎの水を用意する（p.109）',
+  '先入観を生む説明やブランドを事前に出さない（p.74）'
+];
+var PD_LEVELS = [{label:'大きな差', pd:0.5},{label:'中くらいの差', pd:0.3},{label:'小さな差', pd:0.2}]; // 区切りは出典なし（道具の目安）
+var ALPHA = 0.05, TARGET = 0.8;
+
+// ===== 計算（正確な二項分布） =====
+function binomUpper(n, k, p){ // P(X >= k), X ~ binom(n, p)
+  if (k <= 0) return 1; if (k > n) return 0;
+  var lp = Math.log(p), lq = Math.log(1 - p), l = n * lq, ls = [l], i, s = 0;
+  for (i = 0; i < n; i++){ l += Math.log((n - i) / (i + 1)) + lp - lq; ls.push(l); }
+  for (i = k; i <= n; i++) s += Math.exp(ls[i]);
+  return Math.min(1, s);
+}
+function criticalValue(n, p0, alpha){ // 片側：P(X>=x)<=alpha の最小の x。無ければ null
+  for (var x = 0; x <= n; x++) if (binomUpper(n, x, p0) <= alpha) return x;
+  return null;
+}
+function criticalTwoSided(n, alpha){ // 両側（p0=1/2）：同じ方を選んだ人数 x で 2*P(X>=x)<=alpha の最小の x
+  for (var x = Math.ceil(n / 2); x <= n; x++) if (Math.min(1, 2 * binomUpper(n, x, 0.5)) <= alpha) return x;
+  return null;
+}
+function power(n, p0, pd, alpha){
+  var c = criticalValue(n, p0, alpha); if (c === null) return 0;
+  return binomUpper(n, c, p0 + pd * (1 - p0));
+}
+function sampleSizes(p0, pd, alpha, target){ // first=初めて target を超える人数 / stable=その人数以上は全部 target 以上
+  var n = 1, first = null, lastFail = 0, m;
+  while (first === null){ if (power(n, p0, pd, alpha) >= target) first = n; n++; if (n > 5000) return null; }
+  for (m = 1; m <= 3 * first + 50; m++) if (power(m, p0, pd, alpha) < target) lastFail = m;
+  return {first: first, stable: lastFail + 1};
+}
+function minDecidable(p0, alpha){ for (var n = 1; n <= 200; n++) if (criticalValue(n, p0, alpha) !== null) return n; return null; }
+function minDecidableTwoSided(alpha){ for (var n = 1; n <= 200; n++) if (criticalTwoSided(n, alpha) !== null) return n; return null; }
+
+// ===== 判定 =====
+function select(inp){
+  var r = null, i, notes = [], purpose = purposeOf(inp);
+  for (i = 0; i < RULES.length; i++){ var q = RULES[i];
+    if (q.goal !== inp.goal || q.q2 !== inp.q2) continue;
+    if (q.q3 && q.q3 !== inp.q3) continue;
+    if (q.panel !== 'any' && q.panel !== inp.panel) continue;
+    r = q; break; }
+  if (inp.goal === 'ana' && inp.panel === 'untrained') notes.push('N2'); // 好みの枝は評価する人を聞かない（N1 はカードの「だれに」に吸収）。N3 は紙のタブ
+  return {rule: r, picks: r ? r.pick : [], notes: notes, purpose: purpose, samples: samplesOf(inp)};
+}
+function peopleKey(purpose, panel){ if (purpose === 'pref') return 'pref'; if (panel === 'untrained' && purpose !== 'intensity') return null; return panel; }
+Object.keys(METHODS).forEach(function(k){ METHODS[k].id = k; });
+return {METHODS:METHODS, RULES:RULES, Q2:Q2, Q3:Q3, complete:complete, samplesOf:samplesOf, purposeOf:purposeOf, WHO:WHO, NOTES:NOTES, PEOPLE:PEOPLE, COMMON_HOWTO:COMMON_HOWTO, PD_LEVELS:PD_LEVELS, ALPHA:ALPHA, TARGET:TARGET,
+  binomUpper:binomUpper, criticalValue:criticalValue, criticalTwoSided:criticalTwoSided, power:power, sampleSizes:sampleSizes,
+  minDecidable:minDecidable, minDecidableTwoSided:minDecidableTwoSided, select:select, peopleKey:peopleKey, SRC:{K:K,S:S,O:O}};
+})();
+if (typeof module !== 'undefined') module.exports = CORE;
+</script>
+<script id="sheetcore">
+// ===== 評価シート（割り付けと紙）。対象は識別試験4種と順位法だけ =====
+var SHEET = (function(){
+var METHODS = {triangle:{k:2}, paired_diff:{k:2}, paired_pref:{k:2}, duotrio:{k:2}, ranking:{k:null}, scoring:{k:null}, cata:{k:null}};
+var MAX_WORDS = 25; // CATA の言葉の数の上限：1回分が1枚に入る最大（紙の実測で 25 は入り 30 は入らない・§9.2）
+// 評点法の尺度（官能評価士テキスト p.194「1〜5、-3〜+3」・p.195 ②の 0〜10 点）。既定は 0（1〜5）。言葉は両端だけ
+var SCALES = [{label:'5段階（1〜5）', vals:[1, 2, 3, 4, 5]}, {label:'7段階（−3〜+3）', vals:[-3, -2, -1, 0, 1, 2, 3]}, {label:'11段階（0〜10）', vals:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]},
+  // 9段階の好き嫌い（官能評価士テキスト p.117 表3-8 の井上の用語。1＝非常に嫌い〜9＝非常に好き）。目盛りが等間隔とは限らない（p.118）
+  {label:'9段階（好き嫌い）', vals:[1, 2, 3, 4, 5, 6, 7, 8, 9], words:['非常に嫌い', 'とても嫌い', 'やや嫌い', 'わずかに嫌い', '好きでも嫌いでもない', 'わずかに好き', 'やや好き', 'とても好き', '非常に好き']}], MAX_ITEMS = 5;
+function williamsLike(method){ return method === 'ranking' || method === 'scoring' || method === 'cata'; } // 評点法も各セットで全試料を1つずつ＝順位法と同じ Williams 型
+var MAX_CODES = 900; // 100〜999
+var MAX_REPS = 5, MAX_DESKS = 14; // 机に並べる方式のセット数は12まで（順位法7試料だけ釣り合う最小の14まで）
+// 机に並べる方式の既定のセット数＝並びが釣り合う最小の数（3点＝6通り・2点系＝先後2通り・順位法＝Williams 型の行数）
+function deskDefault(method, k){ return method === 'triangle' ? 6 : williamsLike(method) ? (k % 2 ? 2 * k : k) : 4; } // 2点系は4（2だと前と逆を選ぶ当て推量で有意率が上がる＝qa 第7回）
+function deskMax(method, k){ return Math.max(12, deskDefault(method, k)); }
+function rng(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle(a, rnd){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+// order の先頭から順に使い回して n 個（各要素の回数の差は最大1）→ 並びを混ぜる（机に並べる方式のセットどうしの割り当てに使う）
+function balanced(order, n, rnd){ var out = [], i; for (i = 0; i < n; i++) out.push(order[i % order.length]); return shuffle(out, rnd); }
+// 1連（order の長さ＝並びがひと回りそろう数）ごとに混ぜる。配った順に使えば、途中で止まっても偏りは1連の端数ぶんまで（2026-11-13 オーナー：人数は前もって決まらない）。
+// 最後の端数の連は order の off 番目からの巡回で使う（刷った枚数ぶん全部使えば偏り最大1のまま）
+function blocked(order, n, rnd, off){ var L = order.length, out = [], s, i, blk;
+  for (s = 0; s < n; s += L){ blk = []; for (i = 0; i < Math.min(L, n - s); i++) blk.push(order[(i + (n - s < L ? off || 0 : 0)) % L]); out = out.concat(shuffle(blk, rnd)); }
+  return out; }
+// 人×回のセットに並びを配る。回ごとに、人の並び（配る順）で1連ずつ混ぜる。どの人のどの回にどの並びが来るかはランダムで、回どうしは別々に混ぜる
+// （同じ人の2回目が1回目から推せない＝qa 第5回）。端数の連は回ごとに order の続きから使い、全セット通しても偏り最大1。机の中（n＝1）は前のまま全体で混ぜる
+function spreadSets(order, n, reps, rnd, inner){
+  if (inner) return balanced(order, n * reps, rnd);
+  var cols = [], out = [], r, e; for (r = 0; r < reps; r++) cols.push(blocked(order, n, rnd, r * (n % order.length)));
+  for (e = 0; e < n; e++) for (r = 0; r < reps; r++) out.push(cols[r][e]);
+  return out; }
+// 1連＝並びがひと回りそろう人数：机に並べる方式は開始セット×向き（2×セット数）、ほかは並びの通り数（3点6・2点系2・Williams 型の行数）
+function unitOf(method, k, desk, D){ return desk ? 2 * D : method === 'triangle' ? 6 : williamsLike(method) ? (k % 2 ? 2 * k : k) : 2; }
+function williams(k){ // 1行目 0,1,k-1,2,k-2,… を1つずつずらす。奇数 k は各行の逆順も足す
+  var first = [0], lo = 1, hi = k - 1, i, rows = [];
+  while (first.length < k){ first.push(lo++); if (first.length < k) first.push(hi--); }
+  for (i = 0; i < k; i++) rows.push(first.map(function(x){ return (x + i) % k; }));
+  if (k % 2) for (i = 0; i < k; i++) rows.push(rows[i].slice().reverse());
+  return rows;
+}
+// 「全員で同じ」は全手法で使える（オーナー判断 2026-11-05：評価者が他人の用紙やコップの並びを見ない運用が前提）
+function sharedAllowed(method){ return !!METHODS[method]; }
+// 組番号：割り付けを決める条件（種・手法・人数・試料の数・番号の付け方・目的）から作る英数字3文字。0/O・1/I は使わない
+var GROUP_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+function groupId(seed, method, n, k, shared, purpose, reps, extra){
+  var str = [seed, method, n, k, shared === 'desk' ? 2 : shared ? 1 : 0, purpose || ''].concat(reps > 1 ? [reps] : []).concat(extra || []).join('|'), h = 2166136261, i, out = '';
+  for (i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  var r = rng(h); for (i = 0; i < 3; i++) out += GROUP_CHARS[Math.floor(r() * GROUP_CHARS.length)];
+  return out;
+}
+function cupsNeeded(method, n, k, reps){ return n * (reps || 1) * (method === 'triangle' ? 3 : williamsLike(method) ? k : 2); }
+// 評点法は尺度と比べるものの数も組番号に入れる（割り付けは順位法と同じで、紙の欄が変わる）
+function assign(method, names, n, seed, purpose, opts){
+  var a = assign0(method, names, n, seed, purpose, opts);
+  if (a.error) return a;
+  if (method === 'cata'){ var W = Math.max(1, Math.min(MAX_WORDS, (opts && opts.words) | 0 || 1)); a.words = W; a.group = groupId(seed, method, n, names.length, a.desk ? 'desk' : a.shared, purpose, a.reps, ['w', W]); return a; }
+  if (method !== 'scoring') return a;
+  var sc = Math.max(0, Math.min(SCALES.length - 1, (opts && opts.scale) | 0)), it = Math.max(1, Math.min(MAX_ITEMS, (opts && opts.items) | 0 || 1));
+  a.scale = sc; a.items = it; a.ctrl = !!(opts && opts.ctrl); // 1つ目の試料は対照（劣化・保存試験など）。組番号の材料にも入れる
+  a.group = groupId(seed, method, n, names.length, a.desk ? 'desk' : a.shared, purpose, a.reps, [sc, it].concat(a.ctrl ? ['c'] : []));
+  return a;
+}
+function assign0(method, names, n, seed, purpose, opts){
+  if (opts && opts.desk){
+    // 机に並べる方式：机の上にセット1〜Dを左から並べ、セットごとに並びとコードを1つ決める（全員同じ）。並びの数はセットどうしで釣り合い、どのセットに来るかはランダム
+    var D = Math.max(1, Math.min(deskMax(method, names.length), opts.reps | 0 || 1)), one = assign(method, names, 1, seed, purpose, {reps: D, _inner: true});
+    if (one.error) return one;
+    var desks = one.rows.map(function(r){ var d = JSON.parse(JSON.stringify(r)); d.desk = r.rep; delete d.ev; delete d.rep; return d; }), rows = [], e, j;
+    // 2点系・1:2点：巡回で見て隣どうしの先後が入れ替わる所が、ちょうど半分（できなければ一番近い偶数）になる置き方だけから選ぶ。
+    // AB,BA,AB,BA のように全部入れ替わる置き方だと「前と逆を選ぶ」当て推量が全員に効く（机は全員共通。qa 第7回のあとの数え）
+    if ((method === 'paired_diff' || method === 'paired_pref' || method === 'duotrio') && D >= 3){
+      var key = function(d){ return d.cups[0].content; }, sws = function(arr){ var c = 0; for (var q = 0; q < arr.length; q++) if (key(arr[q]) !== key(arr[(q + 1) % arr.length])) c++; return c; };
+      // 入れ替わりの数は巡回では必ず偶数。半分にちょうどできないとき（セット数が4の倍数でないとき）は、半分以下で一番近い偶数（少ない方。多い方だと有意率が上がる）
+      var target = Math.max(2, 2 * Math.floor(D / 4));
+      var prnd = rng((seed ^ 0x27d4eb2f) >>> 0), tries = 0, arr = desks.slice();
+      do { arr = shuffle(desks.slice(), prnd); tries++; } while (sws(arr) !== target && tries < 5000);
+      desks = arr.map(function(d, q){ d.desk = q + 1; return d; });
+    }
+    // 開始セット：人数で均等に（偏り最大1）割り振り、誰がどこから始めるかはランダム。各人は開始セットから順に回り、最後の次はセット1に戻る
+    // 向きも半分ずつ（R＝セット番号が増える順・L＝減る順）。開始×向きの組を、前半は開始がばらばらで向きが交互、後半は同じ開始を逆向きで並べて使い回す（開始・向き・組それぞれ偏り最大1）
+    var srnd = rng((seed ^ 0x5bd1e995) >>> 0), perm = shuffle(desks.map(function(d){ return d.desk; }), srnd), firstR = srnd() < 0.5, combos = [];
+    perm.forEach(function(st0, i){ combos.push({start: st0, dir: ((i % 2 === 0) === firstR) ? 'R' : 'L'}); });
+    perm.forEach(function(st0, i){ combos.push({start: st0, dir: ((i % 2 === 0) === firstR) ? 'L' : 'R'}); });
+    var who = blocked(combos, n, srnd), starts = who.map(function(c){ return c.start; }), dirs = who.map(function(c){ return c.dir; });
+    for (e = 1; e <= n; e++) for (j = 0; j < D; j++){ var step = dirs[e - 1] === 'R' ? j : -j, sn = ((starts[e - 1] - 1 + step) % D + D) % D + 1, r = JSON.parse(JSON.stringify(desks[sn - 1])); r.ev = e; r.rep = sn; r.visit = j + 1; r.start = starts[e - 1]; r.dir = dirs[e - 1]; delete r.desk; rows.push(r); }
+    return {method: method, purpose: purpose, names: names, n: n, reps: D, seed: seed, shared: false, desk: true, desks: desks, starts: starts, dirs: dirs, group: groupId(seed, method, n, names.length, 'desk', purpose, D), rows: rows};
+  }
+  var rnd = rng(seed), k = names.length, rows = [], i, order, shared = !!(opts && opts.shared) && sharedAllowed(method), tmp = 0, inner = !!(opts && opts._inner), reps = Math.max(1, Math.min(inner ? MAX_DESKS : MAX_REPS, (opts && opts.reps) | 0 || 1));
+  if (!METHODS[method]) return {error:'この手法の評価シートはまだありません。'};
+  if (!shared && cupsNeeded(method, n, k, reps) > MAX_CODES) return {error:'人数×回数×試料の数が多く、3ケタのコードが足りません（900個まで）。'};
+  var pool = []; for (i = 100; i <= 999; i++) pool.push(i); shuffle(pool, rnd); var pi = 0;
+  // 全員で同じ：試料×そのカップが何個目かで1つのコード（3点は A・B それぞれ2つ）。まず仮の番号で割り付けてから置き換える
+  // 回数2以上は回ごとに別の組（どの回の中でも全員同じ）。同じ組を回をまたいで使うと、自分の回だけで組が分かり答えの手がかりになる（qa 第4回）
+  var sharedByRep = null, sharedCodes = null;
+  if (shared){ sharedByRep = []; for (var r0 = 0; r0 < reps; r0++){ var sc = {}; for (var c0 = 0; c0 < k; c0++) for (var o0 = 0; o0 < (method === 'triangle' ? 2 : 1); o0++) sc[c0 + '_' + o0] = pool[pi++]; sharedByRep.push(sc); } sharedCodes = sharedByRep[0]; }
+  function cup(c){ return {code: shared ? --tmp : pool[pi++], content: c}; }
+  if (method === 'triangle'){
+    // 違う1つが B の3通りと A の3通りを交互に並べてから使い回す（6通りも、違う1つの中身も、偏りは最大1）
+    var oddB = shuffle(['AAB','ABA','BAA'], rnd), oddA = shuffle(['ABB','BAB','BBA'], rnd), first = rnd() < 0.5;
+    order = []; for (i = 0; i < 3; i++){ if (first){ order.push(oddB[i], oddA[i]); } else { order.push(oddA[i], oddB[i]); } }
+    spreadSets(order, n, reps, rnd, inner).forEach(function(pat, t){
+      var cups = pat.split('').map(function(ch){ return cup(ch === 'A' ? 0 : 1); });
+      var cnt = [0, 0]; cups.forEach(function(c){ cnt[c.content]++; });
+      var odd = cnt[0] === 1 ? 0 : 1;
+      rows.push({ev: Math.floor(t / reps) + 1, rep: t % reps + 1, pattern: pat, cups: cups, answer: cups.filter(function(c){ return c.content === odd; }).map(function(c){ return c.code; })});
+    });
+  } else if (method === 'paired_diff' || method === 'paired_pref'){
+    order = shuffle(['AB','BA'], rnd);
+    spreadSets(order, n, reps, rnd, inner).forEach(function(pat, t){
+      var cups = pat.split('').map(function(ch){ return cup(ch === 'A' ? 0 : 1); });
+      rows.push({ev: Math.floor(t / reps) + 1, rep: t % reps + 1, pattern: pat, cups: cups, answer: method === 'paired_diff' ? cups.filter(function(c){ return c.content === 0; }).map(function(c){ return c.code; }) : null});
+    });
+  } else if (method === 'duotrio'){
+    // 見本は常に対照（1つ目の試料＝kanno p.164）。見本と同じものを先に出すか後に出すかを半々（偏り最大1）
+    order = shuffle([true, false], rnd);
+    spreadSets(order, n, reps, rnd, inner).forEach(function(sameFirst, t){
+      var cups = (sameFirst ? [0, 1] : [1, 0]).map(cup);
+      rows.push({ev: Math.floor(t / reps) + 1, rep: t % reps + 1, ref: 0, sameFirst: sameFirst, cups: cups, answer: cups.filter(function(x){ return x.content === 0; }).map(function(x){ return x.code; })});
+    });
+  } else if (williamsLike(method)){
+    // Williams 型（各試料が各順番に1回・直前の試料の組も釣り合う）。偶数 k は k 行、奇数 k は鏡像を足して 2k 行。
+    // 1つ目の方格を混ぜて先に、鏡像の方格を後に並べてから使い回す（順番の偏り最大1）
+    var base = shuffle(names.map(function(_, j){ return j; }), rnd), w = williams(k), sq1 = [], sq2 = [];
+    w.forEach(function(row, i){ (i < k ? sq1 : sq2).push(row.map(function(x){ return base[x]; })); });
+    shuffle(sq1, rnd); shuffle(sq2, rnd);
+    var first2 = sq2.length && rnd() < 0.5;
+    spreadSets(first2 ? sq2.concat(sq1) : sq1.concat(sq2), n, reps, rnd, inner).forEach(function(seq, t){
+      var cups = seq.map(cup);
+      rows.push({ev: Math.floor(t / reps) + 1, rep: t % reps + 1, cups: cups, answer: purpose === 'intensity' && method === 'ranking' ? names.map(function(_, j){ return cups.filter(function(c){ return c.content === j; })[0].code; }) : null});
+    });
+  }
+  if (shared) rows.forEach(function(r){
+    var occ = {}, map = {};
+    r.cups.forEach(function(c){ var o = occ[c.content] || 0; occ[c.content] = o + 1; map[c.code] = sharedByRep[r.rep - 1][c.content + '_' + o]; c.code = map[c.code]; });
+    if (r.answer) r.answer = r.answer.map(function(x){ return map[x]; });
+  });
+  return {method: method, purpose: purpose, names: names, n: n, reps: reps, seed: seed, shared: shared, sharedCodes: sharedCodes, sharedByRep: sharedByRep, group: groupId(seed, method, n, k, shared, purpose, reps), rows: rows};
+}
+function newSeed(){ return 1 + Math.floor(Math.random() * 999999); }
+return {METHODS: METHODS, SCALES: SCALES, MAX_ITEMS: MAX_ITEMS, MAX_WORDS: MAX_WORDS, rng: rng, assign: assign, newSeed: newSeed, cupsNeeded: cupsNeeded, williams: williams, deskDefault: deskDefault, deskMax: deskMax, unitOf: unitOf, williamsLike: williamsLike, MAX_REPS: MAX_REPS, sharedAllowed: sharedAllowed, groupId: groupId, GROUP_CHARS: GROUP_CHARS};
+})();
+if (typeof module !== 'undefined') module.exports = SHEET;
+</script>
+<script id="tallycore">
+// ===== 回答の打ち込みと集計（紙の回答用紙を見て係の人が打ち込む。docs/method_selector.md §10） =====
+var TALLY = (function(){
+var MCODE = ['triangle', 'duotrio', 'paired_diff', 'paired_pref', 'ranking', 'scoring', 'cata'], MODE = ['each', 'shared', 'desk'], PURP = ['diff', 'intensity', 'pref', 'describe'];
+var CH = SHEET.GROUP_CHARS, LEN = 9, PRE_SHEET = 'sensory_sheet_', PRE_ANS = 'sensory_tally_', KEEP = 30;
+// 呼び出し番号：割り付けを決める条件（種・手法・人数・試料の数・番号の付け方・回数・目的）を 42 ビットに詰め、組番号と同じ32文字で9文字にする。
+// 評点法だけ10文字目に「尺度×5＋比べるものの数−1」を足す
+function paramsOf(a){ var p = {seed: a.seed, method: a.method, n: a.n, k: a.names.length, mode: a.desk ? 'desk' : a.shared ? 'shared' : 'each', reps: a.reps, purpose: a.purpose || 'diff'}; if (a.method === 'scoring'){ p.scale = a.scale; p.items = a.items; p.ctrl = !!a.ctrl; } if (a.method === 'cata') p.words = a.words; return p; }
+function recallOf(p){
+  var m = MCODE.indexOf(p.method), md = MODE.indexOf(p.mode), pu = PURP.indexOf(p.purpose), v, s = '', i;
+  if (m < 0 || md < 0 || pu < 0) return null;
+  v = p.seed; v = v * 8 + m; v = v * 256 + (p.n - 2); v = v * 8 + (p.k - 2); v = v * 4 + md; v = v * 16 + (p.reps - 1); v = v * 4 + pu;
+  for (i = 0; i < LEN; i++){ s = CH[v % 32] + s; v = Math.floor(v / 32); }
+  if (p.method === 'scoring') s += CH[p.scale * 5 + p.items - 1] + (p.ctrl ? CH[1] : ''); // 対照ありは11文字目に印
+  if (p.method === 'cata') s += CH[p.words - 1]; // CATA は10文字目＝言葉の数−1
+  return s.slice(0, 3) + '-' + s.slice(3, 6) + '-' + s.slice(6);
+}
+function norm(s){ return String(s || '').replace(/[\uFF01-\uFF5E]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).toUpperCase().replace(/[^0-9A-Z]/g, ''); } // 全角英数・小文字・空白・区切りをならす
+function parseRecall(str){
+  var s = norm(str), v = 0, i, c;
+  if (s.length < LEN || s.length > LEN + 2) return null;
+  var ext = s.length > LEN ? CH.indexOf(s[LEN]) : -1; if (s.length > LEN && ext < 0) return null;
+  var ctrl = s.length === LEN + 2; if (ctrl && s[LEN + 1] !== CH[1]) return null;
+  for (i = 0; i < LEN; i++){ c = CH.indexOf(s[i]); if (c < 0) return null; v = v * 32 + c; }
+  var pu = v % 4; v = Math.floor(v / 4); var reps = v % 16 + 1; v = Math.floor(v / 16); var md = v % 4; v = Math.floor(v / 4);
+  var k = v % 8 + 2; v = Math.floor(v / 8); var n = v % 256 + 2; v = Math.floor(v / 256); var m = v % 8, seed = Math.floor(v / 8);
+  if (m >= MCODE.length || md >= MODE.length || seed < 1 || seed > 999999 || n > 200) return null;
+  var method = MCODE[m], mode = MODE[md];
+  if (method === 'ranking' ? (k < 3 || k > 8) : (method === 'scoring' || method === 'cata') ? k > 8 : k !== 2) return null;
+  if ((method === 'scoring' || method === 'cata') !== (ext >= 0)) return null;
+  if (method === 'scoring' && ext >= 5 * SHEET.SCALES.length) return null; if (ctrl && method !== 'scoring') return null; if (method === 'cata' && ext >= SHEET.MAX_WORDS) return null;
+  if (reps > (mode === 'desk' ? SHEET.deskMax(method, k) : SHEET.MAX_REPS)) return null;
+  var out = {seed: seed, method: method, n: n, k: k, mode: mode, reps: reps, purpose: PURP[pu]};
+  if (method === 'scoring'){ out.scale = Math.floor(ext / 5); out.items = ext % 5 + 1; out.ctrl = ctrl; }
+  if (method === 'cata') out.words = ext + 1;
+  return out;
+}
+function rebuild(p, names){
+  var nm = []; for (var j = 0; j < p.k; j++) nm.push((names && names[j]) || (p.ctrl && j === 0 ? '対照' : 'ABCDEFGH'[j])); // 対照の空欄は「対照」
+  return SHEET.assign(p.method, nm, p.n, p.seed, p.purpose, {shared: p.mode === 'shared', desk: p.mode === 'desk', reps: p.reps, scale: p.scale, items: p.items, words: p.words, ctrl: p.ctrl});
+}
+// ===== 端末に残す（無くても壊れない） =====
+function ls(){ try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { return null; } }
+function get(k){ try { var s = ls(), v = s && s.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function put(k, v){ try { var s = ls(); if (s) s.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function saveSheet(a, names){
+  put(PRE_SHEET + a.group, {p: paramsOf(a), names: names, items: a.itemNames || null, t: Date.now()});
+  try { // 打ちかけの無い古い組は KEEP 件まで
+    var s = ls(); if (!s) return; var list = [], i, key;
+    for (i = 0; i < s.length; i++){ key = s.key(i); if (key && key.indexOf(PRE_SHEET) === 0 && !s.getItem(PRE_ANS + key.slice(PRE_SHEET.length))) list.push([key, (get(key) || {}).t || 0]); }
+    list.sort(function(x, y){ return y[1] - x[1]; }).slice(KEEP).forEach(function(x){ s.removeItem(x[0]); });
+  } catch (e) {}
+}
+function loadSheet(group){ return get(PRE_SHEET + norm(group)); }
+function saveAnswers(group, ans){ put(PRE_ANS + group, ans); }
+function loadAnswers(group){ return get(PRE_ANS + group) || {}; }
+// ===== 集計 =====
+function keyOf(r){ return r.ev + '_' + r.rep; }
+function cataOk(a, x){ return Array.isArray(x) && x.every(function(w){ return w >= 0 && w < a.words; }); }
+function scoreOk(a, x){ return typeof x === 'number' && SHEET.SCALES[a.scale].vals.indexOf(x) >= 0; }
+function completeItem(a, r, v, t){ return !!v && r.cups.every(function(c){ return scoreOk(a, v[c.code + '_' + t]); }); } // 評点法：項目 t の点がそのセットの全コードにある
+function complete(a, r, v){
+  if (v === undefined || v === null) return false;
+  if (a.method === 'scoring'){ for (var t = 0; t < a.items; t++) if (!completeItem(a, r, v, t)) return false; return true; }
+  if (a.method === 'cata') return r.cups.every(function(c){ return cataOk(a, v[c.code]); }); // 「当てはまるものなし」は空の配列＝回答あり
+  if (a.method === 'ranking'){
+    var seen = {}, k = r.cups.length;
+    return r.cups.every(function(c){ var x = v[c.code]; if (!(x >= 1 && x <= k) || seen[x]) return false; seen[x] = 1; return true; });
+  }
+  return r.cups.some(function(c){ return c.code === v; });
+}
+function lnGamma(x){ var g = [676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7], a = 0.99999999999980993, t, i;
+  x -= 1; for (i = 0; i < 8; i++) a += g[i] / (x + i + 1); t = x + 7.5; return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a); }
+function chi2Upper(x, df){ // P(X >= x)、X ~ χ²(df)。正則化不完全ガンマ関数 Q(df/2, x/2)
+  var a = df / 2, z = x / 2, i, sum, del, ap, b, c, d, h, an;
+  if (z <= 0) return 1;
+  if (z < a + 1){ ap = a; sum = del = 1 / a; for (i = 0; i < 1000; i++){ ap++; del *= z / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-15) break; }
+    return Math.max(0, 1 - sum * Math.exp(-z + a * Math.log(z) - lnGamma(a))); }
+  b = z + 1 - a; c = 1 / 1e-300; d = 1 / b; h = d;
+  for (i = 1; i < 1000; i++){ an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300; c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; del = d * c; h *= del; if (Math.abs(del - 1) < 1e-15) break; }
+  return Math.min(1, Math.exp(-z + a * Math.log(z) - lnGamma(a)) * h);
+}
+function normInv(p){ // 標準正規分布の下側 p 点（Acklam の近似・相対誤差 1.2e-9 ほど）
+  var A = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00],
+      B = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01],
+      C = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00],
+      D = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00], q, r, x;
+  if (p < 0.02425){ q = Math.sqrt(-2 * Math.log(p)); x = (((((C[0]*q+C[1])*q+C[2])*q+C[3])*q+C[4])*q+C[5]) / ((((D[0]*q+D[1])*q+D[2])*q+D[3])*q+1); }
+  else if (p > 1 - 0.02425){ q = Math.sqrt(-2 * Math.log(1 - p)); x = -(((((C[0]*q+C[1])*q+C[2])*q+C[3])*q+C[4])*q+C[5]) / ((((D[0]*q+D[1])*q+D[2])*q+D[3])*q+1); }
+  else { q = p - 0.5; r = q * q; x = (((((A[0]*r+A[1])*r+A[2])*r+A[3])*r+A[4])*r+A[5])*q / (((((B[0]*r+B[1])*r+B[2])*r+B[3])*r+B[4])*r+1); }
+  return x;
+}
+// 3試料のフリードマン：帰無（各セットの順位は6通りが等確率）の下での正確分布。R_i＝2J＋d_i と置くと Ftest＝Σd_i²/J なので、
+// (d1,d2) の格子で J 回たたみ込み、Σd² が観測以上になる確率を p 値にする（kanno p.172 の検定表 ISO8587 Table 4 は正確分布の値。χ² は表が使えないときの代用＝p.173）
+var EXACT3_MAX = 200, exact3Cache = {};
+function friedmanExact3(J){ // 戻り値：{ss: Σd² の値ごとの確率}
+  if (exact3Cache[J]) return exact3Cache[J];
+  var W = 2 * J + 1, cur = new Float64Array(W * W), nxt, o = J, j, x, y, t, P = [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0]]; // (d1,d2) の1セットぶんの動き（6通り）
+  cur[o * W + o] = 1;
+  for (j = 0; j < J; j++){ nxt = new Float64Array(W * W);
+    for (x = o - j; x <= o + j; x++) for (y = o - j; y <= o + j; y++){ var v = cur[x * W + y]; if (!v) continue; v /= 6; for (t = 0; t < 6; t++) nxt[(x + P[t][0]) * W + y + P[t][1]] += v; }
+    cur = nxt; }
+  var ss = {}; for (x = 0; x < W; x++) for (y = 0; y < W; y++){ var w = cur[x * W + y]; if (!w) continue; var a = x - o, b = y - o, q = a * a + b * b + (a + b) * (a + b); ss[q] = (ss[q] || 0) + w; }
+  return (exact3Cache[J] = ss);
+}
+function friedmanExact3P(R, J){ var d = R.map(function(r){ return r - 2 * J; }), q = d[0] * d[0] + d[1] * d[1] + d[2] * d[2], ss = friedmanExact3(J), p = 0; for (var k in ss) if (+k >= q) p += ss[k]; return Math.min(1, p); }
+// フリードマンの順位検定（官能評価士テキスト PDF p.172 (12)式・p.173 χ²・(13)(14)式）。3試料は正確分布（セット数 EXACT3_MAX まで）、4試料以上は χ²
+function friedman(R, J, alpha){
+  var p = R.length, s2 = 0, i, j; R.forEach(function(x){ s2 += x * x; });
+  var F = 12 * s2 / (J * p * (p + 1)) - 3 * J * (p + 1); if (F < 0 && F > -1e-9) F = 0;
+  var exact = p === 3 && J <= EXACT3_MAX, pv = exact ? friedmanExact3P(R, J) : chi2Upper(F, p - 1), a2 = 2 * alpha / (p * (p - 1)), z = normInv(1 - a2 / 2), lsd = z * Math.sqrt(J * p * (p + 1) / 6), pairs = [];
+  for (i = 0; i < p; i++) for (j = i + 1; j < p; j++) if (Math.abs(R[i] - R[j]) >= lsd) pairs.push([i, j]);
+  return {F: F, df: p - 1, p: pv, exact: exact, alphaPair: a2, z: z, lsd: lsd, pairs: pairs};
+}
+function betacf(a, b, x){ var qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap, m, m2, aa, del, h;
+  if (Math.abs(d) < 1e-300) d = 1e-300; d = 1 / d; h = d;
+  for (m = 1; m <= 1000; m++){ m2 = 2 * m; aa = m * (b - m) * x / ((qam + m2) * (a + m2)); d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; h *= d * c;
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)); d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; del = d * c; h *= del; if (Math.abs(del - 1) < 1e-15) break; }
+  return h; }
+function ibeta(x, a, b){ // 正則化不完全ベータ関数 I_x(a,b)
+  if (x <= 0) return 0; if (x >= 1) return 1;
+  var bt = Math.exp(lnGamma(a + b) - lnGamma(a) - lnGamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b; }
+function fUpper(F, d1, d2){ if (!(F > 0)) return 1; if (F === Infinity) return 0; return ibeta(d2 / (d2 + d1 * F), d2 / 2, d1 / 2); } // Excel の F.DIST.RT
+function tTwo(t, df){ if (!isFinite(t)) return 0; return ibeta(df / (df + t * t), df / 2, 0.5); } // Excel の T.DIST.2T
+// 二元配置の分散分析（官能評価士テキスト p.148-149 繰り返しなし・p.150-151 繰り返しあり）。X[e][j] = その評価者・その試料の点の配列（回数ぶん）
+function anova2(X){
+  var n = X.length, k = X[0].length, r = X[0][0].length, G = 0, Mj = [], Me = [], C = [], e, j, q, x;
+  for (j = 0; j < k; j++) Mj.push(0);
+  for (e = 0; e < n; e++){ Me.push(0); C.push([]); for (j = 0; j < k; j++){ var cs = 0; for (q = 0; q < r; q++){ x = X[e][j][q]; cs += x; } C[e].push(cs / r); Mj[j] += cs; Me[e] += cs; G += cs; } }
+  G /= n * k * r; Mj = Mj.map(function(v){ return v / (n * r); }); Me = Me.map(function(v){ return v / (k * r); });
+  var ssA = 0, ssB = 0, ssAB = 0, ssE = 0, ssT = 0;
+  Mj.forEach(function(v){ ssA += n * r * (v - G) * (v - G); }); Me.forEach(function(v){ ssB += k * r * (v - G) * (v - G); });
+  for (e = 0; e < n; e++) for (j = 0; j < k; j++){ var ia = C[e][j] - Mj[j] - Me[e] + G; if (r > 1) ssAB += r * ia * ia; else ssE += ia * ia;
+    for (q = 0; q < r; q++){ x = X[e][j][q]; ssT += (x - G) * (x - G); if (r > 1) ssE += (x - C[e][j]) * (x - C[e][j]); } }
+  var dfA = k - 1, dfB = n - 1, dfAB = r > 1 ? (k - 1) * (n - 1) : 0, dfE = r > 1 ? k * n * (r - 1) : (k - 1) * (n - 1), msE = ssE / dfE;
+  var eff = function(ss, df){ if (!df) return null; var ms = ss / df, F = msE > 1e-12 ? ms / msE : (ms > 1e-12 ? Infinity : 0); return {ss: ss, df: df, ms: ms, F: F, p: fUpper(F, df, dfE)}; };
+  return {n: n, k: k, r: r, means: Mj, cell: C, sample: eff(ssA, dfA), panel: eff(ssB, dfB), inter: r > 1 ? eff(ssAB, dfAB) : null, error: {ss: ssE, df: dfE, ms: msE}, total: {ss: ssT, df: n * k * r - 1}};
+}
+// 2つずつ：評価者ごとの平均（回数ぶんをならした値）で対応のある t 検定（p.144）を、ボンフェローニの方法（p.152-153＝有意水準を対の数で割る）で
+function pairsBonferroni(C, alpha){
+  var n = C.length, k = C[0].length, m = k * (k - 1) / 2, out = [], i, j;
+  for (i = 0; i < k; i++) for (j = i + 1; j < k; j++){
+    var d = C.map(function(row){ return row[i] - row[j]; }), mean = d.reduce(function(s, x){ return s + x; }, 0) / n, v = d.reduce(function(s, x){ return s + (x - mean) * (x - mean); }, 0) / (n - 1);
+    var t = v > 1e-12 ? mean / Math.sqrt(v / n) : (Math.abs(mean) > 1e-12 ? Infinity : 0), p = t === 0 ? 1 : tTwo(Math.abs(t), n - 1);
+    out.push({i: i, j: j, diff: mean, t: t, p: p, sig: p < alpha / m - 1e-12, sig1: p < 0.01 / m - 1e-12}); // テキストは「未満」（p.152）
+  }
+  return {alpha: alpha / m, pairs: out};
+}
+function le(p, a){ return p <= a + 1e-12; } // p がちょうど水準のときの浮動小数点の揺れをならす（qa 指摘E）
+// 対照ありの2つずつ：対照（1つ目の試料）とほかの試料の組だけ（k−1組）。基準は 0.05÷(k−1)（ボンフェローニ p.152-153）。対応のある t（p.144）は今と同じ。
+// ダネットの方法（p.153）はテキストに表も式も無いので使わない（対照との組に絞ったボンフェローニは、ダネットより厳しめ）
+function pairsControl(C, alpha){
+  var n = C.length, k = C[0].length, m = k - 1, out = [];
+  for (var j = 1; j < k; j++){
+    var d = C.map(function(row){ return row[j] - row[0]; }), mean = d.reduce(function(s0, x){ return s0 + x; }, 0) / n, v = d.reduce(function(s0, x){ return s0 + (x - mean) * (x - mean); }, 0) / (n - 1);
+    var t = v > 1e-12 ? mean / Math.sqrt(v / n) : (Math.abs(mean) > 1e-12 ? Infinity : 0), p = t === 0 ? 1 : tTwo(Math.abs(t), n - 1);
+    out.push({i: 0, j: j, diff: mean, t: t, p: p, sig: p < alpha / m - 1e-12, sig1: p < 0.01 / m - 1e-12});
+  }
+  return {alpha: alpha / m, pairs: out};
+}
+// 対照ありの結論の形：mono＝差のあった試料の向きがそろい、最初に差が出た試料より後ろもすべて同じ向きで差がある／list＝それ以外（強い・弱いを並べる）／unclear＝分散分析は差ありでも対照との組に差が無い
+function ctrlSummary(it){
+  if (!it.ctrl || it.p === null) return null;
+  var sig = it.pairs, k = it.ctrlPairs.length + 1;
+  if (!sig.length) return {type: 'none'}; // 結論は2つずつ（対照との組）の比べだけで決める（分散分析は参考）
+  var up = sig.filter(function(q){ return q.diff >= 0; }).map(function(q){ return q.j; }), down = sig.filter(function(q){ return q.diff < 0; }).map(function(q){ return q.j; });
+  var first = sig[0].j, same = !up.length || !down.length, all = true; for (var j = first; j < k; j++) if (!sig.some(function(q){ return q.j === j; })) all = false;
+  return {type: same && all ? 'mono' : 'list', first: first, upward: sig[0].diff >= 0, up: up, down: down, level: sig.every(function(q){ return q.sig1; }) ? 1 : 5}; // 水準は対照との組の p で（1%＝0.01÷(k−1) 未満）
+}
+function tallyScoring(a, ans, A){
+  var byEv = {}, k = a.names.length, items = [];
+  a.rows.forEach(function(r){ (byEv[r.ev] = byEv[r.ev] || []).push(r); });
+  for (var t = 0; t < a.items; t++){
+    var X = [], skipped = 0, evs = [], skippedEvs = [];
+    Object.keys(byEv).map(Number).sort(function(x, y){ return x - y; }).forEach(function(ev){
+      var rs = byEv[ev]; if (!rs.every(function(r){ return completeItem(a, r, ans[keyOf(r)], t); })){ skipped++; skippedEvs.push(ev); return; } evs.push(ev); // 1つでも欠けた評価者はその項目から除く（釣り合った形のまま計算するため）
+      var row = []; for (var j = 0; j < k; j++) row.push([]);
+      rs.slice().sort(function(x, y){ return x.rep - y.rep; }).forEach(function(r){ var v = ans[keyOf(r)]; r.cups.forEach(function(c){ row[c.content].push(v[c.code + '_' + t]); }); });
+      X.push(row);
+    });
+    var it = {item: t, used: X.length, skipped: skipped, evs: evs, skippedEvs: skippedEvs}; // evs＝av.cell の行の評価者番号（レポートの表に使う）
+    // 回数2以上（机も）は評価者×試料ごとに平均した表で「繰り返しなし」の二元配置（p.146-149）。残りの誤差で割る繰り返しありの形（p.150-151）は、
+    // 評価者ごとの好みのばらつき（交互作用）があると差が無くても有意になりやすい（qa：名目0.05 に対し 10人×3試料×回数2 で 0.34）ので判定には使わない
+    var Xm = X.map(function(row){ return row.map(function(xs){ return [xs.reduce(function(s0, x0){ return s0 + x0; }, 0) / xs.length]; }); });
+    if (X.length >= 2){ var av = anova2(Xm); it.av = av; it.means = av.means; it.p = av.sample.p; it.sig5 = le(it.p, A); it.sig1 = le(it.p, 0.01);
+      if (a.ctrl){ it.ctrl = true; var pc = k === 2 ? {alpha: A, pairs: [{i: 0, j: 1, diff: av.means[1] - av.means[0], p: av.sample.p, sig: it.sig5, sig1: it.sig1}]} : pairsControl(av.cell, A); it.ctrlAlpha = pc.alpha; it.ctrlPairs = pc.pairs; it.pairs = pc.pairs.filter(function(q){ return q.sig; }); if (k > 2){ it.allPairs = pc.pairs; it.pairAlpha = pc.alpha; } } // 分散分析の結果にかかわらず比べる（関門を外す＝kanno p.153）
+      else if (k === 2) it.pairs = it.sig5 ? [{i: 0, j: 1, diff: av.means[0] - av.means[1], sig: true, sig1: it.sig1}] : [];
+      else { var pb = pairsBonferroni(av.cell, A); it.allPairs = pb.pairs; it.pairAlpha = pb.alpha; it.pairs = pb.pairs.filter(function(q){ return q.sig; }); } // allPairs＝判定しなかった組も含めた全部の組（レポートの表に使う。判定は今までどおり） // 関門なし：分散分析の結果にかかわらず2つずつ（kanno p.153（分散分析で差が出てからでなくてよい））
+    } else { it.p = null; it.sig5 = it.sig1 = false; it.pairs = []; }
+    items.push(it);
+  }
+  return items;
+}
+// コクランの Q 検定（官能評価士テキスト p.181-182 (22)式）：B[j][i]＝評価者 j が試料 i にその言葉を選んだら1
+function cochranQ(B){
+  var k = B[0].length, U = [], X = B.map(function(row){ return row.reduce(function(s0, x){ return s0 + x; }, 0); }), i, j;
+  for (i = 0; i < k; i++){ U.push(0); for (j = 0; j < B.length; j++) U[i] += B[j][i]; }
+  var sU = 0, sU2 = 0, sX = 0, sX2 = 0; U.forEach(function(u){ sU += u; sU2 += u * u; }); X.forEach(function(x){ sX += x; sX2 += x * x; });
+  var den = k * sX - sX2, Q = den > 0 ? (k - 1) * (k * sU2 - sU * sU) / den : 0; // 全員が全部か何も選ばないと分母0（そのときは分子も0）＝差の手がかりなし（テキストに無い扱い）
+  return {Q: Q, df: k - 1, p: den > 0 ? chi2Upper(Q, k - 1) : 1, U: U, sU2: sU2, sX: sX, sX2: sX2};
+}
+// CATA：言葉ごとに、全セットに回答のある評価者だけで。回数2以上は人ごとに「半分を超える回で選んだら1」にまとめてから（人どうしは独立・§10.2）
+function tallyCata(a, ans, A){
+  var byEv = {}, k = a.names.length, out = {used: 0, skipped: 0, words: [], skippedEvs: []}, evs = [];
+  a.rows.forEach(function(r){ (byEv[r.ev] = byEv[r.ev] || []).push(r); });
+  Object.keys(byEv).map(Number).sort(function(x, y){ return x - y; }).forEach(function(ev){ if (byEv[ev].every(function(r){ return complete(a, r, ans[keyOf(r)]); })) evs.push(ev); else { out.skipped++; out.skippedEvs.push(ev); } });
+  out.used = evs.length; out.evs = evs;
+  for (var w = 0; w < a.words; w++){
+    var B = [], sel = []; for (var i = 0; i < k; i++) sel.push(0);
+    evs.forEach(function(ev){ var cnt = []; for (var i2 = 0; i2 < k; i2++) cnt.push(0);
+      byEv[ev].forEach(function(r){ var v = ans[keyOf(r)]; r.cups.forEach(function(c){ if (v[c.code].indexOf(w) >= 0){ cnt[c.content]++; sel[c.content]++; } }); });
+      B.push(cnt.map(function(x){ return 2 * x > a.reps ? 1 : 0; })); });
+    var cnt1 = sel.map(function(_, i){ return B.reduce(function(s0, row){ return s0 + row[i]; }, 0); }); // 選んだ人数（回数2以上はまとめた後）
+    var it = {word: w, count: cnt1, share: cnt1.map(function(c1){ return evs.length ? c1 / evs.length : 0; })}; // 割合も検定と同じ（まとめた後に選んだ人の割合）
+    if (evs.length >= 2){ var q = cochranQ(B); it.q = q; it.p = q.p; it.sig5 = le(q.p, A); it.sig1 = le(q.p, 0.01); } else { it.p = null; it.sig5 = it.sig1 = false; }
+    out.words.push(it);
+  }
+  return out;
+}
+// 来なかった人：その評価者のどのセットにも何も打ち込んでいない（刷った枚数ぶん評価者番号があり、使わなかった紙もある＝2026-11-13）。集計から黙って除く
+function touched(v){ if (v === undefined || v === null) return false; if (typeof v !== 'object') return true; for (var x in v) if (v[x] !== undefined && v[x] !== null) return true; return false; }
+function present(a, ans){ var on = {}; a.rows.forEach(function(r){ if (touched(ans[keyOf(r)])) on[r.ev] = true; }); return Object.keys(on).map(Number).sort(function(x, y){ return x - y; }); }
+function contentOf(r, code){ for (var i = 0; i < r.cups.length; i++) if (r.cups[i].code === code) return r.cups[i].content; return null; }
+function tally(a0, ans){
+  var evs = present(a0, ans), on = {}; evs.forEach(function(e){ on[e] = true; });
+  var a = {}; for (var x0 in a0) a[x0] = a0[x0]; a.rows = a0.rows.filter(function(r){ return on[r.ev]; }); // 打ち込んだ人だけで集計（判定の人数・回答数＝打ち込んだ人×セット）
+  var used = [], skipped = 0, A = CORE.ALPHA, res = {method: a.method, total: a.rows.length, people: evs.length, multi: a.reps > 1};
+  a.rows.forEach(function(r){ var v = ans[keyOf(r)]; if (complete(a, r, v)) used.push({r: r, v: v}); else skipped++; });
+  var N = used.length; res.used = N; res.skipped = skipped;
+  if (a.method === 'scoring'){ res.items = tallyScoring(a, ans, A); return res; }
+  if (a.method === 'cata'){ res.cata = tallyCata(a, ans, A); return res; }
+  if (a.method === 'paired_pref'){
+    var cnt = [0, 0]; used.forEach(function(u){ cnt[contentOf(u.r, u.v)]++; });
+    var hi = Math.max(cnt[0], cnt[1]);
+    res.counts = cnt; res.more = cnt[0] === cnt[1] ? null : cnt[0] > cnt[1] ? 0 : 1;
+    res.p = N ? Math.min(1, 2 * CORE.binomUpper(N, hi, 0.5)) : null;
+    res.c5 = CORE.criticalTwoSided(N, A); res.c1 = CORE.criticalTwoSided(N, 0.01);
+    res.sig5 = res.c5 !== null && hi >= res.c5; res.sig1 = res.c1 !== null && hi >= res.c1;
+  } else if (a.method === 'ranking'){
+    var k = a.names.length, R = []; for (var j = 0; j < k; j++) R.push(0);
+    used.forEach(function(u){ u.r.cups.forEach(function(c){ R[c.content] += u.v[c.code]; }); });
+    res.rankSums = R; res.J = N;
+    res.rankRows = a.rows.map(function(r){ var v = ans[keyOf(r)], ok1 = complete(a, r, v), rk = null; if (ok1){ rk = []; r.cups.forEach(function(c){ rk[c.content] = v[c.code]; }); } return {ev: r.ev, rep: r.rep, ranks: rk}; }).sort(function(x, y){ return x.ev - y.ev || x.rep - y.rep; }); // 打ち込んだ人の全セット（評価者・回の順）（そろっていないセットは null＝未回答）
+    if (N >= 2){ var fr = friedman(R, N, A); res.fr = fr; res.p = fr.p; res.sig5 = le(fr.p, A); res.sig1 = le(fr.p, 0.01); if (!res.sig5) fr.pairs = []; }
+    else { res.p = null; res.sig5 = res.sig1 = false; }
+  } else {
+    var p0 = CORE.METHODS[a.method].p0, x = used.filter(function(u){ return u.r.answer.indexOf(u.v) >= 0; }).length;
+    res.correct = x; res.p0 = p0; res.p = N ? CORE.binomUpper(N, x, p0) : null;
+    res.c5 = CORE.criticalValue(N, p0, A); res.c1 = CORE.criticalValue(N, p0, 0.01);
+    res.sig5 = res.c5 !== null && x >= res.c5; res.sig1 = res.c1 !== null && x >= res.c1;
+  }
+  return res;
+}
+function csv(a, ans){
+  function r0cols(a){ var h = []; for (var i = 0; i < a.names.length; i++) h.push((i + 1) + '番目の言葉'); return h; }
+  var q = function(s){ s = String(s); if (/^[=+\-@]/.test(s) && !/^[-+]?\d+(\.\d+)?( [-+]?\d+(\.\d+)?)*$/.test(s)) s = "'" + s; /* 数値（−3 など）には付けない */ return '"' + s.replace(/"/g, '""') + '"'; }, rank = a.method === 'ranking', pref = a.method === 'paired_pref', sco = a.method === 'scoring', cat = a.method === 'cata', names = a.names, itemNames = (a.itemNames || []);
+  var head = ['評価者', a.desk ? 'セット' : '回', '出したコード', '中身'].concat(cat ? r0cols(a) : sco ? (function(){ var h = []; for (var t = 0; t < a.items; t++) h.push(itemNames[t] || ('項目' + (t + 1))); return h; })() : rank ? ['順位'] : ['選んだコード', pref ? '選んだ試料' : '正誤']), out = [head.map(q).join(',')];
+  a.rows.forEach(function(r){
+    var v = ans[keyOf(r)], codes = r.cups.map(function(c){ return c.code; }).join(' '), what = r.cups.map(function(c){ return names[c.content] + (a.ctrl && c.content === 0 && String(names[c.content]).indexOf('対照') < 0 ? '（対照）' : ''); }).join(' '), tail;
+    if (cat) tail = r.cups.map(function(c){ var x = v && v[c.code]; return !cataOk(a, x) ? '未回答' : x.length ? x.slice().sort(function(p1, p2){ return p1 - p2; }).map(function(w){ return itemNames[w] || String(w + 1); }).join('・') : 'なし'; });
+    else if (sco){ tail = []; for (var t = 0; t < a.items; t++) tail.push(completeItem(a, r, v, t) ? r.cups.map(function(c){ return v[c.code + '_' + t]; }).join(' ') : '未回答'); }
+    else if (rank) tail = [complete(a, r, v) ? r.cups.map(function(c){ return v[c.code]; }).join(' ') : '未回答']; // 一部だけの順位は集計と同じく未回答
+    else if (!complete(a, r, v)) tail = ['', '未回答'];
+    else tail = [v, pref ? names[contentOf(r, v)] : (r.answer.indexOf(v) >= 0 ? '正' : '誤')];
+    out.push([r.ev, r.rep, codes, what].concat(tail).map(q).join(','));
+  });
+  return '﻿' + out.join('\r\n') + '\r\n';
+}
+return {paramsOf: paramsOf, recallOf: recallOf, parseRecall: parseRecall, norm: norm, rebuild: rebuild, saveSheet: saveSheet, loadSheet: loadSheet, saveAnswers: saveAnswers, loadAnswers: loadAnswers,
+  keyOf: keyOf, present: present, complete: complete, completeItem: completeItem, cochranQ: cochranQ, pairsControl: pairsControl, ctrlSummary: ctrlSummary, anova2: anova2, pairsBonferroni: pairsBonferroni, fUpper: fUpper, tTwo: tTwo, chi2Upper: chi2Upper, friedmanExact3P: friedmanExact3P, normInv: normInv, friedman: friedman, tally: tally, csv: csv};
+})();
+if (typeof module !== 'undefined') module.exports = TALLY;
+</script>
+
+<script>
+(function(){
+var C = CORE, f = document.getElementById('f'), out = document.getElementById('out');
+var cache = {};
+function sizes(p0, pd){ var k = p0 + ':' + pd; if (!cache[k]) cache[k] = C.sampleSizes(p0, pd, C.ALPHA, C.TARGET); return cache[k]; }
+function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+function li(a){ return a.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join(''); }
+var NOTSEEN = '届かなかったときは「今回は差が見えなかった」と記録します（差がないという意味ではありません）。';
+
+// 手法カード：見せるのは「名前・理由・だれに・何人の1行・評価シートを作る」だけ（人数は前もって決まらないので、今の人数の行は出さない＝2026-11-13）。人数の表・注意・実施の注意・根拠は閉じた「くわしく」1つに（ui 指摘1）
+var CALC = {triangle:'片側の二項検定（当て推量の確率 1/3）', duotrio:'片側の二項検定（当て推量の確率 1/2）', paired_diff:'片側の二項検定（当て推量の確率 1/2）', paired_pref:'両側の二項検定',
+  ranking:'フリードマンの順位検定（3試料は正確な分布）と、差があるときの2つずつの順位合計の差', scoring:'二元配置の分散分析と、2つずつの対応のある t 検定（ボンフェローニ）', hedonic:'二元配置の分散分析と、2つずつの対応のある t 検定（ボンフェローニ）',
+  qda:'言葉ごとに、二元配置の分散分析と2つずつの対応のある t 検定（ボンフェローニ）', scoring_ctrl:'二元配置の分散分析と、対照とほかの試料の組だけの対応のある t 検定（ボンフェローニ）', cata:'言葉ごとにコクランの Q 検定'};
+function body(m, inp, extra, notes, common){
+  var h = '', more = '', refs = (extra || []).concat(m.refs);
+  var pk = C.peopleKey(inp.purpose, inp.panel), P = pk ? C.PEOPLE[pk] : null, W = inp.goal === 'pref' ? C.WHO.pref : m.id === 'qda' ? C.WHO.qda : C.WHO.ana;
+  if (!m.nosheet) h += '<p>'+esc(W.text)+'</p>'; // だれに・何人（見える所に1行）。灰色の手法には出さない
+  var sid = m.sheet || m.id;
+  if (!m.nosheet && typeof SHEET !== 'undefined' && SHEET.METHODS[sid]) h += '<button type="button" class="sheetbtn" data-sheet="'+sid+'"'+(m.sheetScale ? ' data-scale="'+m.sheetScale+'"' : '')+(m.sheetCtrl ? ' data-ctrl="1"' : '')+'>評価シートを作る</button>';
+  (notes || []).forEach(function(k){ more += '<div class="note">'+esc(C.NOTES[k])+'</div>'; });
+  if (m.discrim){
+    more += '<h3>必要な人数</h3><table><tr><th>差</th><th>見込み80%の人数</th></tr>';
+    C.PD_LEVELS.forEach(function(L){ more += '<tr><td>'+L.label+'</td><td><b>'+sizes(m.p0, L.pd).stable+'人</b></td></tr>'; });
+    more += '</table><p class="src">差の大きさは「感じ分けられる人の割合」が50%・30%・20%のとき（区切りはこの道具の目安）。</p>';
+    more += '<p>この方法は'+C.minDecidable(m.p0, C.ALPHA)+'人からです（それより少ないと、全員が正解しても判定できません）。</p>';
+    refs.push(C.PEOPLE.trained.ref);
+    more += '<p>'+esc(C.NOTES.N4)+'</p><p>'+esc(NOTSEEN)+'</p>';
+    refs.push(C.SRC.S+' p.4・p.15-17（臨界値・検出力80%・有意水準5%片側）・p.21（人数を増やしても検出力が上下するので「その人数以上は全部80%以上」を出す）・p.12（全員が同じ確率で当てる前提）');
+    refs.push(C.SRC.O+' p.229（棄却できない＝結論づける証拠が足りない）・p.291（検出力80%）');
+  } else {
+    if (P) refs.push(P.ref); else if (inp.goal === 'ana') refs.push(C.PEOPLE.trained.ref);
+    if (m.twoSided){ more += '<p>この方法は'+C.minDecidableTwoSided(C.ALPHA)+'人からです（それより少ないと、全員が同じ方を選んでも判定できません）。</p><p>'+esc(NOTSEEN)+'</p>'; refs.push(C.SRC.O+' p.229（棄却できない＝結論づける証拠が足りない）'); }
+  }
+  if (CALC[m.id]) more += '<h3>集計のしかた</h3><p>'+esc(CALC[m.id])+'</p>';
+  if (m.unfit) more += '<h3>向かない場面</h3><p>'+esc(m.unfit)+'</p>';
+  more += '<h3>実施の注意</h3><ul>'+li(m.howto.concat(inp.goal === 'pref' && !m.nosheet ? ['部署の中で予備的に好みを聞くのは、厳密にはお客さんの評価ではありません。'] : []))+'</ul>'; // 旧 N1（kanno p.85）
+  if (inp.goal === 'pref') refs.push(C.SRC.K+' p.85（調べたい母集団を代表するよう気をつける。研究室内や部署内などで予備的に行う嗜好評価は厳密には消費者の評価ではない）');
+  if (common) more += '<h3>どの方法でも共通の注意</h3><ul>'+li(C.COMMON_HOWTO)+'</ul>';
+  more += '<h3>根拠の頁</h3><ul class="src">'+li(refs)+'</ul>';
+  return h + '<details class="more"><summary>くわしく</summary>'+more+'</details>';
+}
+// 1問ずつ：答えた問いの次だけを出す。目的を変えたら、その下の答えは外す（別の枝の答えが残らないように）
+function show(id, on){ var e = document.getElementById(id); if (e) e.hidden = !on; }
+function flow(){
+  var fd = new FormData(f), goal = fd.get('goal'), q2 = fd.get('q2'), q3 = fd.get('q3'), rs, i;
+  function clear(name){ var x = f.querySelectorAll('input[name="'+name+'"]'); for (var k = 0; k < x.length; k++) x[k].checked = false; }
+  if (q2 && (!goal || C.Q2[goal].indexOf(q2) < 0)){ clear('q2'); q2 = null; }
+  if (q3 && (goal !== 'ana' || !q2 || C.Q3[q2].indexOf(q3) < 0)){ clear('q3'); q3 = null; }
+  var panel = fd.get('panel'), ana = goal === 'ana', q3ok = ana && !!q3;
+  if (panel && !q3ok){ clear('panel'); panel = null; } // 評価する人の問いが隠れたら答えも外す（分析→好み→分析と往復しても前の答えが残らないように・qa 2026-11-09 所見7）
+  show('q2p', goal === 'pref'); show('q2a', ana); show('q3d', ana && q2 === 'disc'); show('q3f', ana && q2 === 'feat'); show('q4', q3ok);
+  return {goal: goal, q2: q2, q3: ana ? q3 : null, panel: ana ? panel : null};
+}
+function render(){
+  var inp = flow(); inp.purpose = C.purposeOf(inp); inp.samples = C.samplesOf(inp);
+  if (typeof window !== 'undefined') window.selectorInput = inp;
+  if (!C.complete(inp)){ out.innerHTML = '<p class="note">上の問いに答えると、評価方法が出ます。</p>'; return; }
+  var r = C.select(inp); if (!r.rule){ out.innerHTML = ''; return; } var m0 = C.METHODS[r.picks[0]];
+  var h = '<section class="method">' + (m0.nosheet ? '<p class="note">この道具では、まだ紙と集計を作れません。</p>' : '') + '<h2>おすすめ：'+esc(m0.name)+'</h2>';
+  h += '<div class="reason">'+esc(m0.nosheet ? m0.short : r.rule.reason)+'</div>';
+  h += body(m0, inp, r.rule.refs, r.notes, true) + '</section>';
+  r.picks.slice(1).forEach(function(id){ var m = C.METHODS[id];
+    h += '<details class="method"><summary>ほかに：'+esc(m.name)+'（'+esc(m.short)+'）</summary>'+body(m, inp)+'</details>'; });
+  out.innerHTML = h;
+}
+f.addEventListener('change', function(){ render(); if (typeof window !== 'undefined' && window.sheetRefresh) window.sheetRefresh(); }); render();
+if (typeof window !== 'undefined') window.selectorRender = render;
+})();
+</script>
+<script id="sheetui">
+// 回答用紙の組み方：1人分の中に回の枠を並べるか（split=false）、回ごとに1枚にするか（split=true）と、1枚に何人分まで刷れるか。
+// headless Chrome の PDF で末尾の一文が切れないことを測って決めた（docs/method_selector.md §9）
+// 戻り値 per[1|2|4] = 'person'（1人分の中に回の枠を並べる）／'split'（回ごとに1枚）／null（その刷り方は選べない）
+function SHEET_LAYOUT(method, k, reps, items, scale){
+  if (method === 'cata'){ // CATA：言葉の数 W で決める（専用の画面なしブラウザの PDF で試料2・5・8×言葉5〜35×回数1・2・3・5×1/2/4人分を測った＝§9.2）
+    var W = items || 1, c1 = W <= 5 ? 3 : W <= 10 ? 2 : 1;
+    return {per: {1: reps <= c1 ? 'person' : 'split', 2: W <= 5 ? (reps <= 1 ? 'person' : 'split') : null, 4: null}};
+  }
+  if (method === 'scoring' && scale === 3){ // 9段階（好き嫌い）は見出しの言葉で行が高いので別の規則（PDF で 7試料×5項目×回数1・2・3・5×1/2/4人分の525通りを測った＝§9.1）
+    var R9 = k * (items || 1), n1 = R9 <= 3 ? 5 : R9 <= 7 ? 3 : R9 <= 12 ? 2 : 1, n2 = R9 <= 3 ? 2 : R9 <= 8 ? 1 : 0, n4 = (items || 1) === 1 && k <= 6 ? 1 : 0;
+    var fit9 = function(mx){ return mx === 0 ? null : reps <= mx ? 'person' : 'split'; };
+    return {per: {1: reps <= n1 ? 'person' : 'split', 2: fit9(n2), 4: fit9(n4)}};
+  }
+  if (method === 'scoring'){ // 評点法：試料×比べるもの＝行の数で決める（PDF で 7試料×5項目×尺度3×回数1・2・3・5×1/2/4人分を測った＝§9.1）
+    var R = k * (items || 1), m1 = R <= 4 ? 5 : R <= 8 ? 3 : R <= 12 ? 2 : 1, m2 = R <= 2 ? 3 : R <= 4 ? 2 : R <= 10 ? 1 : 0;
+    var m4 = (items || 1) === 1 ? (k <= 2 ? 3 : k <= 4 ? 2 : 1) : !scale ? (R <= 10 ? 1 : 0) : (k === 2 && items === 2 ? 1 : 0);
+    var fit = function(mx){ return mx === 0 ? null : reps <= mx ? 'person' : 'split'; };
+    return {per: {1: reps <= m1 ? 'person' : 'split', 2: fit(m2), 4: fit(m4)}};
+  }
+  var rank = method === 'ranking', pair = method === 'paired_diff' || method === 'paired_pref', out = {1: null, 2: null, 4: null};
+  if (reps <= 1){ out[1] = out[2] = 'person'; out[4] = (rank && k >= 7) ? null : 'person'; return {per: out}; }
+  var person = {
+    1: rank ? (k <= 5 ? reps <= 5 : reps <= 2) : reps <= 10,
+    2: rank ? (k <= 5 && reps <= 2) : method === 'duotrio' ? reps <= 3 : reps <= 4,
+    4: pair && reps <= 3
+  };
+  var split = {1: true, 2: true, 4: !(rank && k >= 4)};
+  [1, 2, 4].forEach(function(m){ out[m] = person[m] ? 'person' : split[m] ? 'split' : null; });
+  return {per: out};
+}
+(function(){
+if (typeof document === 'undefined') return;
+var box = document.getElementById('sheet'), out = document.getElementById('out');
+if (!box || !box.addEventListener || !out || !out.addEventListener) return;
+var $ = function(id){ return document.getElementById(id); }, st = null; // st = {method, seed, k, names, attr, key}
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+var LETTERS = 'ABCDEFGH';
+function inp(){ return window.selectorInput || {}; }
+function keyOf(){ var i = inp(); return [i.goal, i.q2, i.q3, i.panel].join('|'); }
+function hasAttr(){ return st.method === 'paired_diff' || (st.method === 'ranking' && st.purpose === 'intensity'); }
+function nameList(){ var a = []; for (var j = 0; j < st.k; j++){ var el = $('sh-n' + j), v = el ? el.value.trim() : ''; a.push(v || (j === 0 && isCtrl() ? '対照' : LETTERS[j])); } return a; }
+function isCtrl(){ return st.method === 'scoring' && st.ctrl; }
+function namesForm(){
+  var m = CORE.METHODS[st.method], h = '', j;
+  if (st.method === 'ranking' || st.method === 'scoring' || st.method === 'cata'){
+    h += '<div class="row">試料の数 <select id="sh-k">';
+    for (j = st.method === 'ranking' ? 3 : 2; j <= 8; j++) h += '<option value="'+j+'"'+(j === st.k ? ' selected' : '')+'>'+j+'</option>';
+    h += '</select></div>';
+  }
+  h += '<div class="row">試料の名前（空欄ならA・B）</div><div class="row">';
+  for (j = 0; j < st.k; j++) h += '<input type="text" id="sh-n'+j+'" placeholder="'+(isCtrl() ? (j === 0 ? '対照' : '例：1か月') : LETTERS[j])+'" value="'+esc(st.names[j] || '')+'" aria-label="試料'+(j + 1)+'の名前">';
+  h += '</div>';
+  if (isCtrl()) h += '<p class="src">左から、対照→日数の短い順に書いてください。</p>';
+  if (st.method === 'paired_diff') h += '<p class="src">左の欄に、強い方（作り手のねらいで）を書いてください。</p>';
+  if (st.method === 'duotrio') h += '<p class="src">左の欄に、見本にする方（いつもの方・対照）を書いてください。</p>';
+  if (st.method === 'ranking' && st.purpose === 'intensity') h += '<p class="src">左から、強い順（作り手のねらいで）に書いてください。</p>';
+  if (hasAttr()) h += '<div class="row">比べるもの <input type="text" id="sh-attr" placeholder="例：甘味" value="'+esc(st.attr || '')+'" aria-label="比べるもの"></div>';
+  if (st.method === 'cata') h += '<div class="row">言葉の一覧（1行に1つ・'+SHEET.MAX_WORDS+'まで）</div><textarea id="sh-words" rows="5" style="width:100%;font-size:1rem" aria-label="言葉の一覧">'+esc((st.words || []).join('\n'))+'</textarea>';
+  if (st.method === 'scoring'){
+    if (st.ctrlBranch) h += '<div class="row"><label><input type="checkbox" id="sh-ctrl"'+(st.ctrl ? ' checked' : '')+'> 1つ目の試料は対照</label></div>'; // 対照の枝から開いたときだけ（ほかの枝は対照なし）
+    h += '<div class="row">点のつけ方 <select id="sh-scale" aria-label="点のつけ方">' + SHEET.SCALES.map(function(sc, i){ return '<option value="'+i+'"'+(i === st.scale ? ' selected' : '')+'>'+sc.label+'</option>'; }).join('') + '</select></div>';
+    h += '<div class="row">比べるもの <select id="sh-items" aria-label="比べるものの数">'; for (j = 1; j <= SHEET.MAX_ITEMS; j++) h += '<option value="'+j+'"'+(j === st.items ? ' selected' : '')+'>'+j+'つ</option>'; h += '</select></div><div class="row">';
+    for (j = 0; j < st.items; j++) h += '<input type="text" id="sh-at'+j+'" placeholder="'+(j ? '' : '例：甘味')+'" value="'+esc(st.attrs[j] || '')+'" aria-label="比べるもの'+(j + 1)+'">';
+    h += '</div>';
+  }
+  $('sh-names').innerHTML = h;
+  $('sh-title').textContent = '評価シート：' + m.name;
+}
+var GUESS_CATA = '当てはまる言葉が無い試料は「当てはまるものなし」に✓をつけてください。', GUESS_SCORE = 'どの欄も、数字を1つだけ○で囲んでください。', GUESS = '分からないときも、どれか1つに○をつけてください（勘でかまいません）。', GUESS_RANK = '分からないときも、同じ順位はつけずに順位を書いてください（勘でかまいません）。';
+function question(){
+  var at = st.attr ? '「'+st.attr+'」' : '（　　　　　）';
+  switch (st.method){
+    case 'triangle': return '3つのうち2つは同じで、1つだけ違います。左から順に味わい、違う1つのコードに○をつけてください。';
+    case 'paired_diff': return '2つを左から順に味わい、'+at+'が強い方のコードに○をつけてください。';
+    case 'paired_pref': return '2つを左から順に味わい、好きな方のコードに○をつけてください。';
+    case 'duotrio': return 'はじめに「見本」を味わって覚えてください。次に2つを左から順に味わい、見本と同じものに○をつけてください。';
+    case 'cata': return '左から順に味わい、試料ごとに、当てはまる言葉すべてに✓をつけてください。';
+    case 'scoring': { var w = st.purpose === 'pref' ? '好ましさ' : '強さ', one = st.attrs[0] ? '「'+st.attrs[0]+'」' : '（　　　　　）';
+      return st.items > 1 ? '左から順に味わい、試料ごとに、各行の'+w+'に当てはまる数字に1つずつ○をつけてください。' : '左から順に味わい、'+one+'の'+w+'に当てはまる数字に1つ○をつけてください。'; }
+    case 'ranking': return st.purpose === 'intensity' ? '左から順に味わい、'+at+'が強い順に 1 から順位を書いてください。' : '左から順に味わい、好きな順に 1 から順位を書いてください。';
+  }
+}
+function buildAnswers(a){
+  var q = question(), rank = st.method === 'ranking', sco = st.method === 'scoring', cat = st.method === 'cata';
+  var reps = a.reps, desk = !!a.desk, j, ps = $('sh-per'), lay = SHEET_LAYOUT(st.method, st.k, reps, cat ? st.words.length : st.items, st.scale), j2;
+  if (ps){ for (j2 = 0; j2 < 3; j2++) ps.options[j2].disabled = !lay.per[+ps.options[j2].value]; if (!lay.per[+ps.value]) ps.value = lay.per[2] ? '2' : '1'; }
+  var mode = lay.per[+((ps || {}).value || 1)], notes = [];
+  if (mode === 'split' && reps > 1) notes.push('回の枠がこの刷り方では入りきらないので、回答用紙は回ごとに1枚にします。');
+  if (desk && reps < 4 && (st.method === 'paired_diff' || st.method === 'paired_pref' || st.method === 'duotrio')) notes.push('4セット未満だと、前と逆を選ぶような当て推量で、差がなくても差ありと出やすくなります。4セット以上を勧めます。'); // qa 第7回（2セットで有意率 0.073〜0.128）
+  else if (desk && reps % (st.method === 'triangle' ? 6 : SHEET.williamsLike(st.method) ? (st.k % 2 ? 2 * st.k : st.k) : 2)) notes.push('並びがそろわない数です。順番の癖があると、甘く出ます。'); // 2026-11-13 オーナー：パネルに順番の癖は無い前提で自由に選べるまま、そろわない数のときだけ1行（qa：全員に同じ癖があると有意率 0.3〜1.0）
+  if (st.k >= 6) notes.push('1回に評価する試料は、ふつう3種類ほど、多くても5種類ほどが望ましいとされます。'); // 6つ以上の注意（kanno p.108）は紙のタブで
+  if (!lay.per[4]) notes.push(lay.per[2] ? 'この組み合わせは4人分だと欄が収まらないので選べません。' : 'この組み合わせは2人分・4人分だと欄が収まらないので選べません。');
+  var R0 = st.k * st.items; // 9段階は実測で R≧29 は必ず、28（7×4）は回数2以上だけはみ出す（qa 指摘E）
+  if (sco && (st.scale === 3 ? (R0 >= 29 || (R0 >= 26 && reps >= 2)) : R0 >= 31)) notes.push('1人分の終わりが2枚目にはみ出します。'); // 実測：30まで1枚・32は末尾の一文・35と40は表の途中から2枚目（qa 評点法 第2回 F）
+  if (notes.length) $('sh-msg').textContent = notes.join('');
+  var per = +((ps || {}).value || 1), RINSE = desk ? 'セットのあいだは口をすすいで少し待ってください。上の枠から順に、書いてあるセットを味わいます。' : '回と回のあいだは、口をすすいで少し待ってから次へ進んでください。', BL = function(r){ return desk ? 'セット'+r.rep : r.rep+'回目'; };
+  function scoreHTML(r){ // 評点法：コード×比べるものの行に尺度の数字を並べ、○で囲んでもらう。言葉は両端だけ
+    var vals = SHEET.SCALES[a.scale].vals, lo = st.purpose === 'pref' ? '嫌い' : '弱い', hi = st.purpose === 'pref' ? '好き' : '強い', multi = st.items > 1, h = '<table class="sc"><tr><th>番目</th><th>コード</th>'+(multi ? '<th>比べるもの</th>' : '');
+    var wds = SHEET.SCALES[a.scale].words;
+    vals.forEach(function(v, i){ h += '<th>'+(wds ? '' : i === 0 ? lo : i === vals.length - 1 ? hi : '')+'</th>'; }); // 9段階の言葉は表の上に1か所（列に折り返すと小さくなる＝qa 指摘D）
+    h += '</tr>';
+    r.cups.forEach(function(c, i){ for (var t = 0; t < st.items; t++){ h += '<tr>' + (t === 0 ? '<td rowspan="'+st.items+'">'+(i + 1)+'</td><td rowspan="'+st.items+'"><b>'+c.code+'</b></td>' : '') + (multi ? '<td>'+(st.attrs[t] ? esc(st.attrs[t]) : '（　　　）')+'</td>' : '') + vals.map(function(v){ return '<td class="num">'+(v > 0 && vals[0] < 0 ? '+' + v : v)+'</td>'; }).join('') + '</tr>'; } });
+    return h + '</table>';
+  }
+  function cataHTML(r){ // CATA：行＝言葉（＋当てはまるものなし）、列＝出す順のコード。言葉の並びは全員同じ（入れ替えはテキストに無い）
+    var h = '<table class="sc"><tr><th></th>' + r.cups.map(function(c, i){ return '<th>'+(i + 1)+'番目<br><b style="font-size:13px">'+c.code+'</b></th>'; }).join('') + '</tr>';
+    st.words.concat(['当てはまるものなし']).forEach(function(w, wi){ h += '<tr><td>'+(wi < st.words.length ? '<span class="wno">'+(wi + 1)+'</span> ' : '')+esc(w)+'</td>' + r.cups.map(function(){ return '<td class="num">□</td>'; }).join('') + '</tr>'; });
+    return h + '</table>';
+  }
+  function cupsHTML(r){ if (cat) return cataHTML(r); if (sco) return scoreHTML(r); return '<div class="cups">'+(st.method === 'duotrio' ? '<div class="cup"><b>見本</b>最初に</div>' : '')
+      + r.cups.map(function(c, i){ return '<div class="cup">'+(i + 1)+'番目<b>'+c.code+'</b>'+(rank ? '<span class="rank">順位</span>' : '')+'</div>'; }).join('') + '</div>'; }
+  function paperHTML(rs, label){
+    return '<div class="paper"><span class="grp">組 '+a.group+'</span><h4>官能評価 回答用紙</h4><p>評価者番号 <b>'+rs[0].ev+'</b>'+(desk ? '　開始セット：<b>'+rs[0].start+'・'+(rs[0].dir === 'L' ? '左へ' : '右へ')+'</b>' : '')+(label || '')+'　日付 <span class="fill"></span></p><p class="q">'+esc(q)+'</p>'
+      + (sco && SHEET.SCALES[a.scale].words ? '<p class="key">'+SHEET.SCALES[a.scale].words.map(function(w, i){ return '<span style="white-space:nowrap">'+SHEET.SCALES[a.scale].vals[i]+'＝'+esc(w)+'</span>'; }).join('　')+'</p>' : '')
+      + (rs.length > 1 ? rs.map(function(r){ return '<div class="rep"><span class="replabel">'+BL(r)+'</span>'+cupsHTML(r)+'</div>'; }).join('') : cupsHTML(rs[0]))
+      + (reps > 1 ? '<p class="q">'+RINSE+'</p>' : '') + '<p class="q">'+(cat ? GUESS_CATA : sco ? GUESS_SCORE : rank ? GUESS_RANK : GUESS)+'</p></div>';
+  }
+  var papers = [], byEv = {};
+  a.rows.forEach(function(r){ (byEv[r.ev] = byEv[r.ev] || []).push(r); });
+  Object.keys(byEv).map(Number).sort(function(x, y){ return x - y; }).forEach(function(ev){
+    var rs = byEv[ev];
+    if (mode === 'split' && reps > 1) rs.forEach(function(r){ papers.push(paperHTML([r], '　'+BL(r))); });
+    else papers.push(paperHTML(rs));
+  });
+  var pages = [];
+  for (j = 0; j < papers.length; j += per) pages.push('<div class="sheetpage m'+per+'">'+papers.slice(j, j + per).map(function(p){ return '<div class="slot">'+p+'</div>'; }).join('')+'</div>');
+  $('pr-answers').innerHTML = pages.join('');
+}
+function deskPour(a, h, names, m){
+  var cols = a.desks[0].cups.length, j;
+  h += '<h5>① 机の並べ方（セット1から左へ順に。各セットのコップは左から）</h5><table><tr><th>セット</th>'+(st.method === 'duotrio' ? '<th>見本</th>' : '');
+  for (j = 0; j < cols; j++) h += '<th>'+(j + 1)+'番目</th>';
+  h += '</tr>';
+  a.desks.forEach(function(d){ h += '<tr><td>'+d.desk+'</td>'+(st.method === 'duotrio' ? '<td>'+esc(names[d.ref])+'</td>' : '')+d.cups.map(function(c){ return '<td><b>'+c.code+'</b> '+esc(names[c.content])+'</td>'; }).join('')+'</tr>'; });
+  h += '</table>'+(st.method === 'duotrio' ? '<p>見本のコップは「見本」と書き、コードは使いません。</p>' : '');
+  h += '<h5>② 評価者ごとの開始セットと向き（右へ＝セット番号が増える順・左へ＝減る順。端の次は反対の端に戻る）</h5><table><tr><th>開始セット</th><th>向き</th><th>評価者番号</th></tr>';
+  a.desks.forEach(function(d){ ['R', 'L'].forEach(function(dr){ var evs = []; a.starts.forEach(function(s0, i){ if (s0 === d.desk && a.dirs[i] === dr) evs.push(i + 1); }); if (evs.length) h += '<tr><td>'+d.desk+'</td><td>'+(dr === 'R' ? '右へ' : '左へ')+'</td><td>'+evs.join('・')+'</td></tr>'; }); });
+  h += '</table>';
+  if (a.desks[0].answer){
+    h += '<h5>③ 答え合わせ表（セットごと・全員共通）</h5><table><tr><th>セット</th><th>'+(st.method === 'ranking' ? '強い順のコード' : '正解のコード')+'</th></tr>';
+    a.desks.forEach(function(d){ h += '<tr><td>'+d.desk+'</td><td>'+d.answer.join(st.method === 'ranking' ? ' → ' : '・')+'</td></tr>'; });
+    h += '</table>';
+  }
+  $('pr-pour').innerHTML = h + '</div>';
+  buildAnswers(a);
+}
+function readWords(){ var el = $('sh-words'), seen = {}; if (!el) return st.words || []; return el.value.split(/\n/).map(function(x){ return x.trim(); }).filter(function(x){ if (!x || seen[x]) return false; seen[x] = 1; return true; }); }
+function build(){
+  if (st.method === 'cata'){ st.words = readWords(); var wmsg = !st.words.length ? '言葉を1つ以上入れると、紙ができます。' : st.words.length > SHEET.MAX_WORDS ? '言葉は' + SHEET.MAX_WORDS + 'までです。' : '';
+    if (wmsg){ $('sh-msg').textContent = wmsg; $('pr-pour').innerHTML = $('pr-answers').innerHTML = ''; $('sh-trials').textContent = ''; window.sheetGroup = null; window.sheetCurrent = null; return; } }
+  var names = nameList(), cr = document.querySelector('input[name="sh-code"]:checked'), shared = !!cr && cr.value === 'shared', desk = !cr || cr.value === 'desk', m = CORE.METHODS[st.method];
+  // 机に並べる方式（既定）：1人が回るセットの数＝机に並べる数。ほかの2方式は「くわしい設定」の中で、1人の回数もそちら
+  var dsel = $('sh-desks'), maxD = SHEET.deskMax(st.method, st.k), dk = st.method + '|' + st.k, j0;
+  if (dsel.options.length !== maxD){ dsel.innerHTML = ''; for (j0 = 1; j0 <= maxD; j0++){ var op = document.createElement('option'); op.value = j0; op.textContent = j0; dsel.appendChild(op); } }
+  if (st.deskKey !== dk){ dsel.value = String(SHEET.deskDefault(st.method, st.k)); st.deskKey = dk; } // 既定は並びが釣り合う数（試料の数を変えたら入れ直す）
+  var reps = desk ? +dsel.value : +(($('sh-reps') || {}).value || 1);
+  $('sh-deskrow').hidden = !desk; $('sh-repsrow').hidden = desk;
+  // 刷る枚数：1連（並びがひと回りそろう人数）の何倍か。1連の大きさが変わったら、前の枚数に近い連数にする
+  var L = SHEET.unitOf(st.method, st.k, desk, reps), maxB = Math.max(1, Math.floor(200 / L)), bsel = $('sh-blocks');
+  var blocks = st.unit === L ? +bsel.value : Math.max(1, Math.min(maxB, Math.round(st.n / L)));
+  if (bsel.options.length !== maxB || st.unit !== L){ bsel.innerHTML = ''; for (j0 = 1; j0 <= maxB; j0++){ var ob = document.createElement('option'); ob.value = j0; ob.textContent = (j0 * L) + '人分'; bsel.appendChild(ob); } } // 選択肢は人分で書くので、1そろいの大きさが変わったら書き直す
+  bsel.value = String(blocks); st.unit = L; // 刻み（○人分ずつ）の添え書きは出さない＝選択肢の数字で分かる（オーナー 2026-11-13）
+  var n = blocks * L; st.n = n;
+  var a = SHEET.assign(st.method, names, n, st.seed, st.purpose, {shared: shared, desk: desk, reps: reps, scale: st.scale, items: st.items, words: (st.words || []).length, ctrl: st.ctrl});
+  st.names = names.slice(); var at = $('sh-attr'); st.attr = at ? at.value.trim() : '';
+  if (st.method === 'scoring'){ st.attrs = []; for (var ai = 0; ai < st.items; ai++){ var ae = $('sh-at' + ai); st.attrs.push(ae ? ae.value.trim() : ''); }
+    if (st.items > 1 && st.attrs.some(function(x){ return !x; })){ $('sh-msg').textContent = '比べるものの名前を全部入れると、紙ができます。'; $('pr-pour').innerHTML = $('pr-answers').innerHTML = ''; $('sh-trials').textContent = ''; window.sheetGroup = null; window.sheetCurrent = null; return; } } // 2つ以上は名前が無いと紙で区別できない（ui 指摘2）
+  if (a.error){ $('sh-msg').textContent = a.error; $('pr-pour').innerHTML = $('pr-answers').innerHTML = ''; $('sh-trials').textContent = ''; return; }
+  $('sh-msg').textContent = '';
+  var tr = $('sh-trials'), N = n * reps;
+  var RU = desk ? 'セット' : '回';
+  if (tr){ tr.textContent = (m.discrim && reps > 1) ? '総試行 '+n+'人分×'+reps+RU+'＝'+N+'回で数えた見込み：' + CORE.PD_LEVELS.map(function(L){ return L.label+' '+Math.round(CORE.power(N, m.p0, L.pd, CORE.ALPHA) * 100)+'%'; }).join('・') + '。ただし人によって見分ける力が違うと、この見込みは甘くなることがあります（sensR p.12）。' : ''; }
+  var cols = a.rows[0].cups.length, j, h = '<div class="paper"><span class="grp">組 '+a.group+'</span><h4>注ぎ表（係の人用・評価する人に見せない）</h4><p>'+esc(m.name)+'・'+n+'人分'+(reps > 1 ? '×'+reps+RU : '')+'　日付 <span class="fill"></span>　サンプル番号：'+(a.desk ? '机に並べる方式（番号も並びも全員で同じ）' : a.shared ? '番号だけ全員で同じ' : '人ごとに変える')+'</p>';
+  if (st.method === 'scoring') a.itemNames = st.attrs.slice();
+  if (st.method === 'cata') a.itemNames = st.words.slice();
+  if (typeof TALLY !== 'undefined'){ TALLY.saveSheet(a, names); window.sheetGroup = a.group; window.sheetCurrent = {a: a, names: names.slice()}; var rcl = TALLY.recallOf(TALLY.paramsOf(a)); h += '<p class="recall">集計の呼び出し番号 <b>'+rcl+'</b>（回答を打ち込むときに使います）</p>'; if ($('sh-recall')) $('sh-recall').textContent = '集計の呼び出し番号 ' + rcl; }
+  if (a.desk) return deskPour(a, h, names, m);
+  if (a.shared){
+    h += '<h5>コップに書くコード（全員で同じ'+(reps > 1 ? '・回ごとに別の組' : '')+'。先に書いておけます）</h5><table><tr>'+(reps > 1 ? '<th>回</th>' : '')+'<th>試料</th><th>コード</th></tr>';
+    a.sharedByRep.forEach(function(sc, ri){ names.forEach(function(name, j){ var cs = []; for (var o = 0; o < 2; o++){ var c = sc[j + '_' + o]; if (c) cs.push(c); } h += '<tr>'+(reps > 1 ? '<td>'+(ri + 1)+'回目</td>' : '')+'<td>'+esc(name)+'</td><td><b>'+cs.join('</b>・<b>')+'</b>'+(cs.length > 1 ? '（2つ出す人は両方を使う）' : '')+'</td></tr>'; }); });
+    h += '</table>'+(st.method === 'duotrio' ? '<p>見本のコップは「見本」と書き、コードは使いません。</p>' : '')+'<h5>評価者ごとの出す順</h5>';
+  }
+  var RC = function(r){ return reps > 1 ? '<td>'+r.rep+'</td>' : ''; }, RH = reps > 1 ? '<th>回</th>' : '';
+  h += '<table><tr><th>評価者</th>'+RH+(st.method === 'duotrio' ? '<th>見本</th>' : '');
+  for (j = 0; j < cols; j++) h += '<th>'+(j + 1)+'番目</th>';
+  h += '</tr>';
+  a.rows.forEach(function(r){
+    h += '<tr><td>'+r.ev+'</td>'+RC(r)+(st.method === 'duotrio' ? '<td>'+esc(names[r.ref])+'</td>' : '')+r.cups.map(function(c){ return '<td><b>'+c.code+'</b> '+esc(names[c.content])+'</td>'; }).join('')+'</tr>';
+  });
+  h += '</table>';
+  if (!a.shared){
+    h += '<h5>試料名と3ケタのコード</h5><table><tr><th>試料</th><th>コード</th></tr>';
+    names.forEach(function(name, j){ var codes = []; a.rows.forEach(function(r){ r.cups.forEach(function(c){ if (c.content === j) codes.push(c.code); }); }); codes.sort(); h += '<tr><td>'+esc(name)+'</td><td>'+codes.join(' ')+'</td></tr>'; });
+    h += '</table>';
+  }
+  if (a.rows[0].answer){
+    h += '<h5>答え合わせ表</h5><table><tr><th>評価者</th>'+RH+'<th>'+(st.method === 'ranking' ? '強い順のコード' : '正解のコード')+'</th></tr>';
+    a.rows.forEach(function(r){ h += '<tr><td>'+r.ev+'</td>'+RC(r)+'<td>'+r.answer.join(st.method === 'ranking' ? ' → ' : '・')+'</td></tr>'; });
+    h += '</table>';
+  }
+  $('pr-pour').innerHTML = h + '</div>';
+  buildAnswers(a);
+
+}
+function open_(method, scale, ctrl){
+  var k = SHEET.METHODS[method].k || (inp().samples === '6+' ? 6 : (method === 'scoring' || method === 'cata') && inp().samples === '2' ? 2 : 3);
+  st = {method: method, seed: SHEET.newSeed(), k: k, names: [], attr: '', attrs: [], words: [], scale: +(scale || 0), ctrl: !!ctrl, ctrlBranch: !!ctrl, items: 1, n: 12, unit: null, purpose: inp().purpose || 'diff', key: keyOf()}; // 問いに答えずに開いたとき（点検など）は前の既定と同じ「違い」
+  $('sheet').style.display = ''; // 打ち込み中に作り直しても新しいシートを出す（qa 第2回）
+  $('sh-closed').hidden = true; box.hidden = false; document.body.classList.add('sheet-open');
+  namesForm(); build(); if (window.tabGo) window.tabGo('sheet'); window.scrollTo && window.scrollTo(0, 0);
+}
+function close_(msg){
+  $('sheet').style.display = ''; box.hidden = true; st = null; window.sheetGroup = null; window.sheetCurrent = null; document.body.classList.remove('sheet-open'); document.body.removeAttribute('data-print');
+  $('pr-pour').innerHTML = $('pr-answers').innerHTML = '';
+  if ($('sh-recall')) $('sh-recall').textContent = '';
+  if (msg){ $('sh-closed').textContent = msg; $('sh-closed').hidden = false; }
+  if (window.tabGo && document.body.getAttribute('data-tab') === 'sheet') window.tabGo('pick');
+}
+out.addEventListener('click', function(e){ var b = e.target.closest ? e.target.closest('[data-sheet]') : null; if (b) open_(b.getAttribute('data-sheet'), b.getAttribute('data-scale'), b.getAttribute('data-ctrl')); });
+box.addEventListener('input', function(e){ if (st && (/^sh-n/.test(e.target.id) || /^sh-at/.test(e.target.id) || e.target.id === 'sh-words')) build(); });
+box.addEventListener('change', function(e){ if (!st) return; if (e.target.id === 'sh-ctrl'){ st.ctrl = e.target.checked; namesForm(); build(); } else if (e.target.id === 'sh-k' || e.target.id === 'sh-scale' || e.target.id === 'sh-items'){ if (e.target.id === 'sh-k') st.k = +e.target.value; else if (e.target.id === 'sh-scale') st.scale = +e.target.value; else { build(); st.items = +e.target.value; } namesForm(); build(); } else if (e.target.name === 'sh-code' || e.target.id === 'sh-per' || e.target.id === 'sh-reps' || e.target.id === 'sh-desks' || e.target.id === 'sh-blocks') build(); });
+$('sh-redo').addEventListener('click', function(){ if (st){ st.seed = SHEET.newSeed(); build(); } });
+$('sh-close').addEventListener('click', function(){ close_(''); });
+$('sh-showpour').addEventListener('click', function(){ var on = document.body.classList.toggle('pour-shown'); this.setAttribute('aria-pressed', String(on)); this.textContent = on ? '注ぎ表を隠す' : '注ぎ表を見る'; });
+function pr(mode){ document.body.setAttribute('data-print', mode); window.print(); }
+window.addEventListener('afterprint', function(){ document.body.removeAttribute('data-print'); });
+$('sh-ppour').addEventListener('click', function(){ pr('pour'); });
+$('sh-pans').addEventListener('click', function(){ pr('answers'); });
+// 上の4項目が変わったら、黙って作り変えずに閉じる
+window.sheetRefresh = function(){ if (st && keyOf() !== st.key) close_('条件が変わりました。もう一度「評価シートを作る」を押してください。'); };
+})();
+</script>
+<script id="tallyui">
+// 打ち込み画面：評価者ごと・セット（回）ごとに紙と同じ並びのコードを出す。正解・不正解は集計するまで出さない
+(function(){
+if (typeof document === 'undefined') return;
+var $ = function(id){ return document.getElementById(id); }, box = $('tally'), cur = null; // cur = {a, ans, ev, names}
+if (!box || !box.addEventListener) return;
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function msg(t){ $('tl-msg').textContent = t || ''; }
+function evRows(ev){ return cur.a.rows.filter(function(r){ return r.ev === ev; }); }
+function label(r){ return cur.a.reps > 1 ? (cur.a.desk ? 'セット' + r.rep : r.rep + '回目') : ''; }
+function nm(j){ return cur.names[j] || (cur.a.ctrl && j === 0 ? '対照' : 'ABCDEFGH'[j]); }
+function itn(t){ return (cur.a.itemNames && cur.a.itemNames[t]) || (cur.a.items > 1 ? '項目' + (t + 1) : ''); }
+function wn(w){ return (cur.a.itemNames && cur.a.itemNames[w]) || String(w + 1); } // 言葉が空なら紙の行の番号
+function sv(x){ return x > 0 && SHEET.SCALES[cur.a.scale].vals[0] < 0 ? '+' + x : String(x); }
+function setHTML(r){
+  var k = TALLY.keyOf(r), v = cur.ans[k], h = '<div class="tl-set">' + (label(r) ? '<div class="tl-lab">' + label(r) + '</div>' : '');
+  if (cur.a.method === 'cata'){ // 紙と同じ向き：言葉1行ごとに出した順のコードのボタン。最後の行が「当てはまるものなし」（押していない＝未回答と分ける）
+    var kk = r.cups.length;
+    for (var w = 0; w <= cur.a.words; w++){
+      var isNone = w === cur.a.words;
+      h += '<div class="tl-wl">' + (isNone ? '当てはまるものなし' : esc(wn(w))) + '</div><div class="tl-cg" style="grid-template-columns:repeat(' + kk + ',1fr)">';
+      r.cups.forEach(function(c){ var x = v && v[c.code], pr = !!x && (isNone ? x.length === 0 : x.indexOf(w) >= 0);
+        h += '<button type="button" class="tl-cb" data-k="' + k + '" data-c="' + c.code + '"' + (isNone ? ' data-none="1"' : ' data-w="' + w + '"') + ' aria-pressed="' + pr + '" aria-label="' + c.code + 'に' + (isNone ? '当てはまるものなし' : esc(wn(w))) + '">' + c.code + '</button>'; });
+      h += '</div>';
+    }
+  } else if (cur.a.method === 'scoring'){ // コードごと・比べるものごとに、紙の数字のボタン
+    var vals = SHEET.SCALES[cur.a.scale].vals;
+    r.cups.forEach(function(c){
+      h += '<div class="tl-srow"><span class="tl-rc">' + c.code + '</span>';
+      for (var t = 0; t < cur.a.items; t++){
+        h += (itn(t) ? '<div class="tl-it">' + esc(itn(t)) + '</div>' : '') + '<div class="tl-sb" style="grid-template-columns:repeat(' + (vals.length === 9 ? 5 : vals.length > 7 ? 6 : vals.length) + ',1fr)">'; // 5・7段階は1行、11段階は 0〜5／6〜10 の2行
+        vals.forEach(function(x){ var pr = !!v && v[c.code + '_' + t] === x; h += '<button type="button" class="tl-r" data-k="' + k + '" data-c="' + c.code + '" data-t="' + t + '" data-s="' + x + '" aria-pressed="' + pr + '" aria-label="' + c.code + (itn(t) ? 'の' + esc(itn(t)) : '') + 'に' + sv(x) + '">' + sv(x) + '</button>'; });
+        h += '</div>';
+      }
+      h += '</div>';
+    });
+  } else if (cur.a.method === 'ranking'){
+    r.cups.forEach(function(c){
+      h += '<div class="tl-rrow' + (r.cups.length >= 6 ? ' tl-wide' : '') + '"><span class="tl-rc">' + c.code + '</span><span class="tl-rb">'; // 6試料以上はコードの下にボタンを1列で
+      for (var x = 1; x <= r.cups.length; x++) h += '<button type="button" class="tl-r" data-k="' + k + '" data-c="' + c.code + '" data-r="' + x + '" aria-pressed="' + (!!v && v[c.code] === x) + '" aria-label="' + c.code + 'に' + x + '位">' + x + '</button>';
+      h += '</span></div>';
+    });
+  } else {
+    h += '<div class="tl-codes">' + r.cups.map(function(c){ return '<button type="button" class="tl-code" data-k="' + k + '" data-c="' + c.code + '" aria-pressed="' + (v === c.code) + '">' + c.code + '</button>'; }).join('') + '</div>';
+  }
+  return h + '</div>';
+}
+function evDone(ev){ return evRows(ev).every(function(r){ return TALLY.complete(cur.a, r, cur.ans[TALLY.keyOf(r)]); }); }
+function render(){
+  $('tl-sets').innerHTML = evRows(cur.ev).map(setHTML).join('');
+  var sel = $('tl-ev'), done = 0, i;
+  for (i = 0; i < sel.options.length; i++){ var e = i + 1, d = evDone(e); sel.options[i].textContent = e + (d ? ' ✓' : ''); }
+  done = TALLY.present(cur.a, cur.ans).length; // 1つでも打ち込んだ人（来なかった人＝何も無い人は数えない）
+  sel.value = String(cur.ev); $('tl-prev').disabled = cur.ev <= 1; $('tl-next').disabled = cur.ev >= cur.a.n;
+  $('tl-prog').textContent = '打ち込んだ人 ' + done + '人（刷った' + cur.a.n + '人分）';
+}
+function changed(){ TALLY.saveAnswers(cur.a.group, cur.ans); $('tl-res').innerHTML = ''; render(); }
+function namesForm(){
+  var h = '<div class="row">試料の名前（注ぎ表のとおり・空欄なら' + 'ABCDEFGH'.slice(0, cur.a.names.length).split('').join('・') + '）</div><div class="row">';
+  for (var j = 0; j < cur.a.names.length; j++) h += '<input type="text" class="tl-nm" data-j="' + j + '" size="8" placeholder="' + (cur.a.ctrl && j === 0 ? '対照' : 'ABCDEFGH'[j]) + '" value="' + esc(cur.names[j] && cur.names[j] !== 'ABCDEFGH'[j] && !(cur.a.ctrl && j === 0 && cur.names[j] === '対照') ? cur.names[j] : '') + '" aria-label="試料' + (j + 1) + 'の名前">';
+  h += '</div>';
+  if (cur.a.method === 'cata') h += '<div class="row">言葉の一覧（注ぎ表のとおり・1行に1つ・' + cur.a.words + 'つ）</div><textarea class="tl-words" rows="4" style="width:100%;font-size:1rem" aria-label="言葉の一覧"></textarea>';
+  if (cur.a.method === 'scoring' && cur.a.items > 1){ h += '<div class="row">比べるもの（注ぎ表のとおり）</div><div class="row">'; for (var t = 0; t < cur.a.items; t++) h += '<input type="text" class="tl-at" data-t="' + t + '" size="8" placeholder="項目' + (t + 1) + '" aria-label="比べるもの' + (t + 1) + '">'; h += '</div>'; }
+  $('tl-names').innerHTML = h;
+}
+function start(a, names, askNames){
+  cur = {a: a, ans: TALLY.loadAnswers(a.group), ev: 1, names: names.slice()};
+  TALLY.saveSheet(a, cur.names);
+  var sel = $('tl-ev'), h = ''; for (var e = 1; e <= a.n; e++) h += '<option value="' + e + '">' + e + '</option>'; sel.innerHTML = h;
+  $('tl-head').textContent = '組 ' + a.group + '・' + CORE.METHODS[a.method].name + '・' + a.n + '人分' + (a.reps > 1 ? '×' + a.reps + (a.desk ? 'セット' : '回') : '');
+  if (askNames) namesForm(); else $('tl-names').innerHTML = '';
+  $('tl-hint').textContent = a.method === 'cata' ? '紙で✓のついた所を押します。✓の無い試料は「当てはまるものなし」の行を。もう一度押すと消えます。' : a.method === 'scoring' ? '紙で○のついた数字を押します。もう一度押すと消えます。' : a.method === 'ranking' ? '紙に書かれた順位を押します。同じ順位は1つだけです。もう一度押すと消えます。' : '紙で○のついたコードを押します。もう一度押すと消えます。空欄なら押さずに次へ。';
+  $('tl-find').hidden = true; $('tl-work').hidden = false; $('tl-res').innerHTML = ''; msg('');
+  render();
+}
+function open_(){
+  var g = TALLY.norm($('tl-grp').value), key = $('tl-key').value.trim(), saved = g.length === 3 ? TALLY.loadSheet(g) : null, p, a;
+  if (g.length !== 3){ msg('組を3文字で入れてください（回答用紙の右上）。'); return; }
+  if (key){
+    p = TALLY.parseRecall(key);
+    if (!p){ msg('呼び出し番号が読めません。注ぎ表の番号を確かめてください。'); return; }
+    a = TALLY.rebuild(p, saved && saved.names); if (saved && saved.items) a.itemNames = saved.items;
+    if (a.error || a.group !== g){ msg('組と呼び出し番号が合いません。打ち間違いがないか確かめてください。'); return; }
+    start(a, a.names, !saved); return;
+  }
+  if (!saved){ msg('この端末にはこの組がありません。注ぎ表の呼び出し番号も入れてください。'); return; }
+  a = TALLY.rebuild(saved.p, saved.names); if (saved.items) a.itemNames = saved.items;
+  if (a.error || a.group !== g){ msg('この組を開けませんでした。呼び出し番号も入れてください。'); return; }
+  start(a, a.names, false);
+}
+function pv(p){ return p < 0.001 ? '0.001未満' : p.toFixed(3); }
+function lv(r){ return r.sig1 ? '1%' : '5%'; }
+// ===== レポート（結論の下の閉じた「くわしい数字」＝使った方法→集計表→検定の値とp値→結論と注意。§10.5） =====
+function f2(x){ return isFinite(x) ? x.toFixed(2) : x < 0 ? '−∞' : x > 0 ? '∞' : '—'; }
+function f3(x){ return isFinite(x) ? x.toFixed(3) : x < 0 ? '−∞' : x > 0 ? '∞' : '—'; }
+function f4(x){ return x.toFixed(4); }
+function pct(x){ return (x * 100).toFixed(1) + '%'; }
+function ps(arr){ return arr.map(function(t){ return '<p>' + esc(t) + '</p>'; }).join(''); }
+function tbl(head, rows){ // 狭い画面では横スクロールの箱に入れる
+  return '<div class="tl-tw"><table class="tl-t"><thead><tr>' + head.map(function(x){ return '<th scope="col">' + esc(x) + '</th>'; }).join('') + '</tr></thead><tbody>'
+    + rows.map(function(rw){ return '<tr>' + rw.map(function(c, i){ return i === 0 ? '<th scope="row">' + esc(c) + '</th>' : '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+}
+function cmp(p, a){ return p < a - 1e-12 ? 'より小さい' : '以下'; }
+function judge(p, s5, s1, yes){ // p値を5%・1%と比べた一文（判定は TALLY の sig5・sig1 のまま）
+  var t = 'p＝' + pv(p) + '。';
+  if (s1) return t + '1%（0.01）' + cmp(p, 0.01) + 'ので、1%の水準でも' + yes + 'と判断します。';
+  if (s5) return t + '5%（0.05）' + cmp(p, 0.05) + 'ので、' + yes + 'と判断します（1%の水準では言えません）。';
+  return t + '5%（0.05）より大きいので、差があるとは言えません。';
+}
+function lean(ms){ // 分散分析（参考）だけ差ありのとき：平均がいちばん離れた試料を「◯が高め／低め」（オーナー 2026-11-13）
+  var g = ms.reduce(function(x, y){ return x + y; }, 0) / ms.length, d = ms.map(function(x){ return x - g; }), mx = Math.max.apply(null, d.map(Math.abs));
+  var js = d.map(function(x, j){ return Math.abs(Math.abs(x) - mx) < 1e-9 ? j : -1; }).filter(function(j){ return j >= 0; });
+  var hi = js.filter(function(j){ return d[j] > 0; }), lo = js.filter(function(j){ return d[j] < 0; }), t = [];
+  if (hi.length) t.push(hi.map(nm).join('と') + 'が高め'); if (lo.length) t.push(lo.map(nm).join('と') + 'が低め');
+  return t.join('、');
+}
+function judgeRef(p, s5){ // 試料3つ以上の分散分析は参考：言い切らない（結論は2つずつの比べだけで決める）
+  return 'p＝' + pv(p) + '（5%' + (s5 ? 'より小さい' : 'より大きい') + '）。試料全体のばらつきの目安で、結論には使いません。どの組に差があるかは、下の2つずつの比べで判断します。';
+}
+function judgeA(q, al){ // 2つずつの比べ：基準（0.05÷組の数）と比べる（判定は TALLY の sig・sig1 のまま）
+  var al1 = al * 0.01 / CORE.ALPHA, t = 'p＝' + pv(q.p) + '。';
+  if (q.sig1) return t + '1%の基準 ' + f4(al1) + ' より小さいので、1%の水準でも差ありと判断します。';
+  if (q.sig) return t + '基準 ' + f4(al) + ' より小さいので差ありと判断します（1%の基準 ' + f4(al1) + ' には届きません）。';
+  return t + '基準 ' + f4(al) + ' 以上なので、差があるとは言えません。';
+}
+function evLab(ev, rep){ return '評価者' + ev + (cur.a.reps > 1 ? '・' + (cur.a.desk ? 'セット' + rep : rep + '回目') : ''); }
+function today(){ var d = new Date(), z = function(x){ return (x < 10 ? '0' : '') + x; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+function report(r, sec){ // sec = {method: [文], table: html, test: html, end: html}
+  var a = cur.a, its = [];
+  var nl = a.names.map(function(_, j){ return nm(j) + (a.ctrl && j === 0 && nm(0).indexOf('対照') < 0 ? '（対照）' : ''); });
+  if (a.method === 'scoring') for (var t = 0; t < a.items; t++) if (itn(t)) its.push(itn(t));
+  var meta = ['作成日 ' + today() + '・組 ' + a.group, '手法 ' + CORE.METHODS[a.method].name, '試料 ' + nl.join('・') + (its.length ? '（比べるもの：' + its.join('・') + '）' : ''), '回答人数 ' + r.people + '人'];
+  return '<details class="tl-rep"><summary>くわしい数字（使った方法・表・p値）</summary><p class="tl-ptitle">官能評価の結果</p><div class="tl-meta">' + ps(meta) + '</div>'
+    + '<h4>1. 使った方法</h4>' + ps(sec.method) + '<h4>2. 集計表</h4>' + sec.table + '<h4>3. 検定の値とp値</h4>' + sec.test + '<h4>4. 結論と注意</h4>' + sec.end + '</details>'
+    + '<div class="row tl-saverow"><button type="button" class="tl-save">結果を保存</button></div>';
+}
+function endOf(bigs, notes){ return bigs.map(function(b){ return '<p><b>' + esc(b) + '</b></p>'; }).join('') + ps(notes); }
+function top(bigs, small){ return bigs.map(function(b){ return '<p class="tl-big">' + esc(b) + '</p>'; }).join('') + small.map(function(t){ return '<p class="src">' + esc(t) + '</p>'; }).join(''); }
+function resultCata(r){ // CATA：言葉ごとにコクランの Q。差がある言葉を大きく（多かった試料を添える）
+  var a = cur.a, c = r.cata, k = a.names.length, none = c.used < 2, sig = c.words.filter(function(w){ return w.sig5; }), small = [], notes = [];
+  var most = function(w){ var mx = Math.max.apply(null, w.share); return w.share.map(function(x, j){ return Math.abs(x - mx) < 1e-12 ? nm(j) : null; }).filter(function(x){ return x; }).join('と'); };
+  var big = none ? '回答が少なく、判定できません' : sig.length ? '試料で選ばれ方に差がある言葉：' + sig.map(function(w){ return wn(w.word) + '（' + most(w) + 'に多い）'; }).join('・') : '試料で選ばれ方に差がある言葉はありません';
+  small.push('回答 ' + c.used + '人' + (c.skipped ? '（未回答の ' + c.skipped + '人は除く）' : ''));
+  if (!none) small.push(sig.length ? '5%の水準で言えます。' : '差がないという意味ではありません。');
+  var s1 = sig.filter(function(w){ return w.sig1; });
+  notes = small.slice(1); if (!none && s1.length) notes.push('1%の水準でも言える言葉：' + s1.map(function(w){ return wn(w.word); }).join('・'));
+  var method = ['コクランの Q 検定。同じ人が全部の試料に✓をつけるので（対応のあるデータ）、言葉ごとに、試料で選ばれ方が違うかを調べます。', 'Q を自由度 ' + (k - 1) + ' のカイ二乗分布とみなして p値を出します。'];
+  if (a.reps > 1) method.push('回数が2以上なので、人ごとに、半分を超える回で選んだら「選んだ」として数えています。');
+  method.push('未回答が1つでもある評価者は除きます。');
+  var table = '<p>数字は選んだ人数（割合）。回答 ' + c.used + '人。</p>' + tbl(['言葉'].concat(a.names.map(function(_, j){ return nm(j); }), ['Q', '自由度', 'p']),
+    c.words.map(function(w){ return [wn(w.word)].concat(w.count.map(function(x, j){ return x + '（' + Math.round(w.share[j] * 100) + '%）'; }), w.q ? [f2(w.q.Q), String(w.q.df), pv(w.p)] : ['—', '—', '—']); }))
+    + (c.skippedEvs.length ? ps(['除いた人：評価者' + c.skippedEvs.join('・') + '（未回答あり）']) : '');
+  var test = none ? ps(['回答が2人未満のため、検定しません。']) : ps(['Q：試料ごとに選ばれた人数のばらつきの大きさ。p値：差がないとしたとき、今のばらつきかそれ以上になる確率。'].concat(c.words.map(function(w){
+    var q = w.q; return wn(w.word) + '：' + (k * q.sX - q.sX2 > 0 ? 'Q＝' + f2(q.Q) + '・自由度 ' + q.df + '。' + judge(w.p, w.sig5, w.sig1, '選ばれ方に差あり') : '全員が全部の試料を選んだか、何も選ばなかったので、差の手がかりがありません（p＝1）。');
+  })));
+  $('tl-res').innerHTML = top([big], small) + report(r, {method: method, table: table, test: test, end: endOf([big], notes)});
+}
+function resultScoring(r){ // 評点法：比べるものごとに。試料3つ以上は、結論（大きい行）を2つずつの比べだけで決める（分散分析は参考）。試料2つは分散分析＝その組
+  var a = cur.a, h = '', k = a.names.length, tb = '', ts = '', te = '', m = k * (k - 1) / 2;
+  var method = ['二元配置の分散分析（繰り返しなし）' + (k >= 3 ? '・参考' : '') + '。点のばらつきを「試料」「評価者」「残り」に分け、評価者ごとの点のつけ方のくせを除いて、試料の差を見ます。'];
+  if (k === 2) method.push('試料が2つなので、分散分析がそのまま2つの比べです。');
+  else if (a.ctrl) method.push('2つずつの比べ：対照とほかの試料の組だけ（' + (k - 1) + '組）を、対応のある t 検定（同じ人の点の差で比べる・両側）とボンフェローニの方法（組の数で水準を割る＝0.05÷' + (k - 1) + '）で。結論はこの比べで決めます。');
+  else method.push('2つずつの比べ：全部の組（' + m + '組）を、対応のある t 検定（同じ人の点の差で比べる・両側）とボンフェローニの方法（組の数で水準を割る＝0.05÷' + m + '）で。結論はこの比べで決めます。');
+  if (a.reps > 1) method.push('回数が2以上なので、評価者×試料ごとに点を平均してから計算しています。');
+  method.push('点の欠けが1つでもある評価者は、その' + (a.items > 1 ? '比べるもの' : '計算') + 'から除きます。');
+  r.items.forEach(function(it){
+    var none = it.p === null, small = [], notes = [], big, bigs = null, multi = k >= 3, found = multi ? it.pairs.length > 0 : it.sig5;
+    var up = a.purpose === 'pref' ? '好まれる' : '強い', down = a.purpose === 'pref' ? '好まれない' : '弱い', cs = TALLY.ctrlSummary(it), vb = a.purpose === 'pref' ? 'より好まれる' : 'より強い';
+    if (none) big = '回答が少なく、判定できません';
+    else if (cs && cs.type === 'mono') big = nm(cs.first) + 'から、対照より' + (cs.upward ? up : down) + 'と言えます'; // 名前の並び（入力順）を時間の順とみなす
+    else if (cs && cs.type === 'list'){ bigs = []; if (cs.up.length) bigs.push('対照より' + up + '：' + cs.up.map(nm).join('・')); if (cs.down.length) bigs.push('対照より' + down + '：' + cs.down.map(nm).join('・')); }
+    else if (multi) big = found ? '差があると言えます' : '差のある組は見つかりませんでした。';
+    else big = it.sig5 ? '差があると言えます' : '差があるとは言えません';
+    small.push('回答 ' + it.used + '人' + (it.skipped ? '（未回答の ' + it.skipped + '人は除く）' : ''));
+    if (!none){
+      if (!it.ctrl && multi && found) small.push('差があると言える2つ：' + it.pairs.map(function(q){ var hi = q.diff >= 0 ? q.i : q.j, lo = hi === q.i ? q.j : q.i; return nm(hi) + 'が' + nm(lo) + vb; }).join('・'));
+      if (found) small.push(multi ? (it.pairs.every(function(q){ return q.sig1; }) ? '1%の水準でも言えます。' : '5%の水準で言えます。') : (it.sig1 ? '1%の水準でも言えます。' : '5%の水準で言えます。')); // 水準は組の p で（1%＝0.01÷組の数 未満）
+      else small.push('差がないという意味ではありません。');
+    }
+    notes = small.slice(1);
+    if (it.av && multi && it.sig5 !== found) notes.push(it.sig5 ? lean(it.av.means) + 'の気配はありますが、人数を増やさないと、どの組とまでは言えません。' : '全体のばらつき（参考）でははっきりしません。');
+    if (it.ctrl) notes.push('全部を同じ回に評価した前提です。');
+    var sub = a.items > 1 ? '<h5>' + esc(itn(it.item)) + '</h5>' : '', bl = bigs || [big];
+    h += (a.items > 1 ? '<h3>' + esc(itn(it.item)) + '</h3>' : '') + top(bl, small);
+    te += sub + endOf(bl, notes);
+    if (!it.av){ tb += sub + ps(['回答が2人未満のため、計算しません。']) + (it.skippedEvs.length ? ps(['除いた人：評価者' + it.skippedEvs.join('・') + '（点の欠けあり）']) : ''); ts += sub + ps(['回答が2人未満のため、検定しません。']); return; }
+    var av = it.av, names = a.names.map(function(_, j){ return nm(j); });
+    tb += sub + '<p>評価者×試料の点' + (a.reps > 1 ? '（回数ぶんを平均した値）' : '') + '</p>'
+      + tbl(['評価者'].concat(names), it.evs.map(function(ev, e){ return ['評価者' + ev].concat(av.cell[e].map(function(x){ return a.reps > 1 ? f2(x) : sv(x); })); }).concat([['平均'].concat(av.means.map(f2))]))
+      + (it.skippedEvs.length ? ps(['除いた人：評価者' + it.skippedEvs.join('・') + '（点の欠けあり）']) : '')
+      + '<p>分散分析表</p>' + tbl(['要因', '平方和', '自由度', '平均平方', 'F', 'p'], [
+        ['試料', f2(av.sample.ss), String(av.sample.df), f2(av.sample.ms), f2(av.sample.F), pv(av.sample.p)],
+        ['評価者', f2(av.panel.ss), String(av.panel.df), f2(av.panel.ms), '', ''],
+        ['残り（誤差）', f2(av.error.ss), String(av.error.df), f2(av.error.ms), '', ''],
+        ['合計', f2(av.total.ss), String(av.total.df), '', '', '']]);
+    if (it.allPairs) tb += '<p>2つずつの比べ</p>' + tbl(['組', '平均の差', 't', 'p', '基準', '判定'], it.allPairs.map(function(q){
+      return [it.ctrl ? nm(q.j) + '−' + nm(q.i) : nm(q.i) + '−' + nm(q.j), f2(q.diff), f2(q.t), pv(q.p), f4(it.pairAlpha), q.sig1 ? '差あり（1%）' : q.sig ? '差あり（5%）' : '言えない']; }));
+    var tl = ['F：試料の違いによるばらつきが、残りのばらつきの何倍か。p値：差がないとしたとき、今の F かそれ以上になる確率。',
+      (multi ? '分散分析（参考）：' : '分散分析：') + '試料の F＝' + f2(av.sample.F) + '（自由度 ' + av.sample.df + '・' + av.error.df + '）。' + (multi ? judgeRef(av.sample.p, it.sig5) : judge(av.sample.p, it.sig5, it.sig1, '試料に差あり'))];
+    if (it.allPairs){ tl.push('t：同じ人の点の差の平均が、そのばらつきに比べてどれだけ大きいか（自由度 ' + (it.used - 1) + '）。');
+      it.allPairs.forEach(function(q){ tl.push((it.ctrl ? nm(q.j) + '−' + nm(q.i) : nm(q.i) + '−' + nm(q.j)) + '：t＝' + f2(q.t) + '。' + judgeA(q, it.pairAlpha)); }); }
+    ts += sub + ps(tl);
+  });
+  $('tl-res').innerHTML = h + report(r, {method: method, table: tb, test: ts, end: te});
+}
+function result(){
+  var a = cur.a, r = TALLY.tally(a, cur.ans), big, small = [], method = [], table = '', test = [];
+  if (a.method === 'scoring') return resultScoring(r);
+  if (a.method === 'cata') return resultCata(r);
+  var none = a.method === 'ranking' ? !r.fr : r.c5 === null, k = a.names.length;
+  big = none ? '回答が少なく、判定できません' : r.sig5 ? '差があると言えます' : '差があるとは言えません';
+  var level = none ? '' : r.sig1 ? '1%の水準でも言えます。' : r.sig5 ? '5%の水準で言えます。' : '差がないという意味ではありません。';
+  var skipRow = r.skipped ? [['未回答（除いた）', r.skipped + '件']] : [];
+  if (a.method === 'paired_pref'){
+    var hi = Math.max(r.counts[0], r.counts[1]);
+    small.push(nm(0) + ' ' + r.counts[0] + '件・' + nm(1) + ' ' + r.counts[1] + '件' + (r.c5 !== null ? '（5%なら多い方が' + r.c5 + '件以上で差あり）' : ''));
+    if (r.sig5) level = nm(r.more) + 'が多く、' + level;
+    method = ['二項検定（両側）。差がなければ、どちらが選ばれる確率も1/2。', 'どちらが好まれてもよいので、多い方の件数を両側で調べます。'];
+    table = tbl(['試料', '選んだ件数', '割合'], [0, 1].map(function(j){ return [nm(j), r.counts[j] + '件', r.used ? pct(r.counts[j] / r.used) : '—']; }).concat([['合計', r.used + '件', r.used ? '100.0%' : '—']]))
+      + tbl(['項目', '値'], [['5%で差ありに必要な件数（多い方）', r.c5 !== null ? r.c5 + '件以上' : '全員が同じ方でも届かない'], ['1%で差ありに必要な件数（多い方）', r.c1 !== null ? r.c1 + '件以上' : '全員が同じ方でも届かない']].concat(skipRow));
+    if (r.p !== null) test = ['p値：差がないとしたとき、多い方が' + hi + '件以上になるか、少ない方が' + (r.used - hi) + '件以下になる確率（両側）。', judge(r.p, r.sig5, r.sig1, '好みに差あり')];
+  } else if (a.method === 'ranking'){
+    small.push('回答 ' + r.used + '件');
+    if (r.fr && r.sig5) small.push(r.fr.pairs.length ? '差があると言える2つ：' + r.fr.pairs.map(function(q){ return nm(q[0]) + 'と' + nm(q[1]); }).join('・') : 'どの2つの間の差かは、はっきりしません。');
+    method = ['フリードマンの順位検定。同じ人が全部の試料に順位をつけるので、セットごとの順位をそろえて、試料の間に順位の差があるかを調べます。',
+      (r.fr ? r.fr.exact : k === 3 && r.used <= 200) ? '試料が3つなので、p値は正確な分布（順位の並べ方をすべて数えたもの）から出します。' : '検定の値を自由度 ' + (k - 1) + ' のカイ二乗分布とみなして p値を出します。',
+      '5%で差があるときだけ、2つずつを順位の合計の差で比べます（LSD。ライアンの法で1組あたりの水準を小さくします）。'];
+    if (r.multi) method.push('1人が何回も答えた回答を、別々の回答として数えています。');
+    method.push('順位がそろっていないセットは除きます。');
+    table = '<p>順位（小さいほど上位）</p>' + tbl(['評価者'].concat(a.names.map(function(_, j){ return nm(j); })), r.rankRows.map(function(w){
+      return [evLab(w.ev, w.rep) + (w.ranks ? '' : '（未回答・除く）')].concat(a.names.map(function(_, j){ return w.ranks ? String(w.ranks[j]) : '—'; })); }).concat([['順位の合計'].concat(r.rankSums.map(String))]));
+    if (r.fr){ var fr = r.fr; test = ['検定の値（Ftest）：順位の合計が試料でどれだけ偏っているか。p値：差がないとしたとき、今の偏りかそれ以上になる確率。', 'Ftest＝' + f2(fr.F) + '（自由度 ' + fr.df + '・セットの数 ' + r.J + '）。' + judge(fr.p, r.sig5, r.sig1, '順位に差あり')];
+      if (r.sig5){ test.push('2つずつの比べ：順位の合計の差が LSD＝' + f2(fr.lsd) + ' 以上の組を差ありとします（Z＝' + f3(fr.z) + '・1組あたりの水準 ' + f4(fr.alphaPair) + '）。');
+        for (var i = 0; i < k; i++) for (var j = i + 1; j < k; j++){ var dd = Math.abs(r.rankSums[i] - r.rankSums[j]), sg = fr.pairs.some(function(q){ return q[0] === i && q[1] === j; });
+          test.push(nm(i) + 'と' + nm(j) + '：差 ' + dd + '。' + (sg ? 'LSD 以上なので差あり。' : 'LSD より小さいので、差があるとは言えません。')); } }
+      else test.push('5%で差がないので、2つずつの比べはしません。'); }
+  } else {
+    var p0s = r.p0 === 0.5 ? '1/2' : '1/3';
+    small.push('正解 ' + r.correct + '／回答 ' + r.used + '件' + (r.c5 !== null ? '（5%なら' + r.c5 + '件以上で差あり）' : ''));
+    method = ['二項検定（片側）。差がなければ、偶然に当たる確率は' + p0s + '。',
+      (a.method === 'triangle' ? '3つのうち違う1つを当てる試験' : a.method === 'duotrio' ? '見本と同じ方を2つから選ぶ試験' : '2つのうち' + nm(0) + 'を選ぶのが正解の試験') + 'なので、正解の数が偶然より多いかを調べます。多い側だけを見るので片側です。'];
+    if (r.multi) method.push('1人が何回も答えた回答も、1件ずつまとめて数えています。');
+    table = tbl(['項目', '値'], [['回答数', r.used + '件'], ['正解数', r.correct + '件'], ['正解率', r.used ? pct(r.correct / r.used) : '—'], ['偶然の確率', p0s],
+      ['5%で差ありに必要な正解数', r.c5 !== null ? r.c5 + '件以上' : '全員正解でも届かない'], ['1%で差ありに必要な正解数', r.c1 !== null ? r.c1 + '件以上' : '全員正解でも届かない']].concat(skipRow));
+    if (r.p !== null) test = ['p値：差がないとしたとき、正解が' + r.correct + '件以上になる確率。', judge(r.p, r.sig5, r.sig1, '差あり')];
+  }
+  if (!test.length) test = ['回答が足りないため、検定しません。'];
+  else if (none) test.push('回答が少なく、全員' + (a.method === 'paired_pref' ? 'が同じ方を選んでも' : a.method === 'ranking' ? 'が同じ順位でも' : '正解でも') + '5%に届きません。');
+  if (level) small.push(level);
+  if (r.skipped) small.push('未回答 ' + r.skipped + '件は除いて数えました。');
+  if (r.multi) small.push(a.method === 'ranking' ? '1人が何回も答えた回答を、別々の回答として数えています。甘く出ることがあります。' : '1人が何回も答えた回答をまとめて数えています。人によって見分ける力が違うと、甘く出ることがあります。');
+  $('tl-res').innerHTML = top([big], small) + report(r, {method: method, table: table, test: ps(test), end: endOf([big], small.slice(1))});
+}
+$('tl-open').addEventListener('click', function(){
+  var sc = window.sheetCurrent; // シートを開いているなら、端末に残せなくてもメモリ上の割り付けでそのまま開く
+  if (window.tabGo) window.tabGo('tally');
+  if (cur && !box.hidden && (!sc || sc.a.group === cur.a.group)) return; // 打ちかけのまま（タブを移っても消さない）
+  box.hidden = false; $('tl-find').hidden = false; $('tl-work').hidden = true; cur = null; msg('');
+  if (sc){ $('tl-grp').value = sc.a.group; $('tl-key').value = ''; start(sc.a, sc.names, false); }
+});
+$('tl-go').addEventListener('click', open_);
+$('tl-close').addEventListener('click', function(){ box.hidden = true; cur = null; if (window.tabGo) window.tabGo(document.body.classList.contains('sheet-open') ? 'sheet' : 'pick'); });
+$('tl-prev').addEventListener('click', function(){ if (cur && cur.ev > 1){ cur.ev--; render(); } });
+$('tl-next').addEventListener('click', function(){ if (cur && cur.ev < cur.a.n){ cur.ev++; render(); var t = $('tl-sets'); t.scrollIntoView && t.scrollIntoView(); } });
+$('tl-ev').addEventListener('change', function(e){ if (cur){ cur.ev = +e.target.value; render(); } });
+$('tl-sets').addEventListener('click', function(e){
+  var b = e.target.closest ? e.target.closest('button[data-k]') : null; if (!b || !cur) return;
+  var k = b.getAttribute('data-k'), c = +b.getAttribute('data-c');
+  if (b.hasAttribute('data-w') || b.hasAttribute('data-none')){
+    var cv = cur.ans[k] || {}, lst = cv[c];
+    if (b.hasAttribute('data-none')){ if (lst && lst.length === 0) delete cv[c]; else cv[c] = []; }
+    else { var w = +b.getAttribute('data-w'); lst = lst ? lst.slice() : []; var at = lst.indexOf(w); if (at >= 0) lst.splice(at, 1); else lst.push(w); if (lst.length) cv[c] = lst; else delete cv[c]; } // 言葉を全部消したら未回答に戻す
+    if (Object.keys(cv).length) cur.ans[k] = cv; else delete cur.ans[k];
+  } else if (b.hasAttribute('data-s')){
+    var sk = c + '_' + b.getAttribute('data-t'), sx = +b.getAttribute('data-s'), sv0 = cur.ans[k] || {};
+    if (sv0[sk] === sx) delete sv0[sk]; else sv0[sk] = sx;
+    if (Object.keys(sv0).length) cur.ans[k] = sv0; else delete cur.ans[k];
+  } else if (b.hasAttribute('data-r')){
+    var x = +b.getAttribute('data-r'), v = cur.ans[k] || {}, code;
+    if (v[c] === x) delete v[c];
+    else { for (code in v) if (v[code] === x) delete v[code]; v[c] = x; } // 同じ順位は1つだけ（前の方を消す）
+    if (Object.keys(v).length) cur.ans[k] = v; else delete cur.ans[k];
+  } else if (cur.ans[k] === c) delete cur.ans[k]; else cur.ans[k] = c;
+  changed();
+});
+$('tl-names').addEventListener('input', function(e){
+  if (cur && e.target.classList.contains('tl-words')){ cur.a.itemNames = e.target.value.split(/\n/).map(function(x){ return x.trim(); }); TALLY.saveSheet(cur.a, cur.names); $('tl-res').innerHTML = ''; render(); return; }
+  if (cur && e.target.classList.contains('tl-at')){ var at = (cur.a.itemNames || []).slice(); at[+e.target.getAttribute('data-t')] = e.target.value.trim(); cur.a.itemNames = at; TALLY.saveSheet(cur.a, cur.names); $('tl-res').innerHTML = ''; render(); return; }
+  if (!cur || !e.target.classList.contains('tl-nm')) return;
+  var j = +e.target.getAttribute('data-j'), v = e.target.value.trim(); cur.names[j] = v || (cur.a.ctrl && j === 0 ? '対照' : 'ABCDEFGH'[j]); cur.a.names = cur.names.slice();
+  TALLY.saveSheet(cur.a, cur.names); $('tl-res').innerHTML = '';
+});
+$('tl-sum').addEventListener('click', function(){ if (cur) result(); });
+// 結果を保存：レポートだけを印刷（4段を開いた状態で）。iPhone は共有から PDF に
+var reopen = null;
+$('tl-res').addEventListener('click', function(e){
+  if (!e.target.classList || !e.target.classList.contains('tl-save')) return;
+  var d = $('tl-res').querySelector('details.tl-rep'); if (!d) return;
+  reopen = d.open ? null : d; d.open = true; document.body.setAttribute('data-print', 'report'); window.print();
+});
+window.addEventListener('afterprint', function(){ if (reopen){ reopen.open = false; reopen = null; } });
+$('tl-csv').addEventListener('click', function(){
+  if (!cur) return;
+  var text = TALLY.csv(cur.a, cur.ans), name = '回答_組' + cur.a.group + '.csv';
+  function plain(){
+    var blob = new Blob([text], {type: 'text/csv'}), u = URL.createObjectURL(blob), l = document.createElement('a');
+    l.href = u; l.download = name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 1000);
+  }
+  // claude.ai のアーティファクトの中では普通の保存が止められているので、downloads の仕組みで保存する（手元で開いたときは今までどおり）
+  if (!(window.claude && typeof window.claude.use === 'function')) return plain();
+  window.claude.use('downloads').then(function(dl){
+    if (!dl) return plain();
+    return dl.save({filename: name, data: new Blob([text], {type: 'text/csv'})}).catch(function(){});
+  }, plain);
+});
+})();
+</script>
+<script id="tabsui">
+// タブ：選ぶ／紙を作る／打ち込む。一度に1つの段だけ見せる（画面だけ。印刷は今までどおり）
+(function(){
+if (typeof document === 'undefined') return;
+var $ = function(id){ return document.getElementById(id); }, ids = {pick: 'tab-pick', sheet: 'tab-sheet', tally: 'tl-open'};
+if (!$('tabs')) return;
+window.tabGo = function(name){ document.body.setAttribute('data-tab', name); $('tab-msg').textContent = ''; Object.keys(ids).forEach(function(k){ $(ids[k]).setAttribute('aria-selected', String(k === name)); }); window.scrollTo && window.scrollTo(0, 0); };
+$('tab-pick').addEventListener('click', function(){ window.tabGo('pick'); });
+$('tab-sheet').addEventListener('click', function(){
+  if (!document.body.classList.contains('sheet-open')){ $('tab-msg').textContent = '「選ぶ」で手法を選び、「評価シートを作る」を押すと開けます。'; return; }
+  window.tabGo('sheet');
+});
+window.tabGo('pick');
+})();
+</script>
+<script id="freetext">
+// 自由文 → 問いの答え（goal・q2・q3・panel）への置き換えだけ。人数は聞かない（2026-11-13）。手法は選ばせない（判定は CORE.select がする）
+var FREETEXT = (function(){
+var API_URL = 'https://api.anthropic.com/v1/messages', MODEL = 'claude-opus-5-5', VERSION = '2026-10-21', KEY_STORE = 'selector_api_key';
+var ALLOWED = {goal:['pref','ana'], q2:['pair','degree','jar','rank','disc','feat'], q3:['tri','duo','pdiff','rankint','cata','qda','scoring','change','sd'], panel:['trained','untrained']};
+var Q2OF = {pair:'pref', degree:'pref', jar:'pref', rank:'pref', disc:'ana', feat:'ana'}, Q3OF = {tri:'disc', duo:'disc', pdiff:'disc', rankint:'disc', cata:'feat', qda:'feat', scoring:'feat', change:'feat', sd:'feat'};
+var SCHEMA = {type:'object', additionalProperties:false, required:['goal','q2','q3','panel','basis'], properties:{
+  goal:{type:'string', enum:['pref','ana','unknown']},
+  q2:{type:'string', enum:['pair','degree','jar','rank','disc','feat','unknown']},
+  q3:{type:'string', enum:['tri','duo','pdiff','rankint','cata','qda','scoring','change','sd','unknown']},
+  panel:{type:'string', enum:['trained','untrained','unknown']},
+  basis:{type:'string'}}};
+var SYSTEM = [
+ '官能評価の相談文を、決まった問いの答えに置き換えるだけの係です。評価方法（手法）は選ばないでください。',
+ 'goal: お客さん（消費者）の好み・受け入れられ方なら "pref"、物そのものの違い・味や香りの強弱・特徴なら "ana"。',
+ 'q2: goal が "pref" のとき：2つのうちどちらが好まれるか＝"pair"／好ましさの程度を点数で＝"degree"／強すぎ・弱すぎでちょうどよいか＝"jar"／3つ以上の好みの順＝"rank"。goal が "ana" のとき：差があるかないか＝"disc"／どんな特徴か・どう違うか（言葉や点数で）＝"feat"。',
+ 'q3: q2 が "disc" のとき：2つの試料に全体として違いがあるか＝"tri"／いつもの品（見本）と同じか＝"duo"／決めた1つの性質（甘さなど）は2つのどちらが強いか＝"pdiff"／3つ以上の試料の強さの順＝"rankint"。q2 が "feat" のとき：言葉で手早く＝"cata"／いくつもの性質を点数でくわしく＝"qda"／1つの性質を点数で＝"scoring"／対照からの変わり方（保存・劣化試験など）＝"change"／製品の印象（高級な―庶民的な など）＝"sd"。goal が "pref" のときは "unknown"。',
+ 'panel: 評価する人。訓練した評価者・パネルなら "trained"、訓練していない人・一般の人なら "untrained"。goal が "pref" のときは "unknown"。',
+ '文章から読み取れない項目は、推測せず "unknown" にしてください。',
+ 'basis: どの言葉からそう読んだかを日本語で1行（60字以内）。'
+].join('\n');
+function buildRequest(text){
+  return {model:MODEL, max_tokens:2000, system:SYSTEM,
+    output_config:{effort:'low', format:{type:'json_schema', schema:SCHEMA}},
+    messages:[{role:'user', content:text}]};
+}
+// 返事の JSON を検査：許された値だけ残し、それ以外は null（＝空のまま）
+function clean(obj){
+  var v = {goal:null, q2:null, q3:null, panel:null}, k;
+  if (!obj || typeof obj !== 'object') return null;
+  for (k in ALLOWED) if (ALLOWED[k].indexOf(obj[k]) >= 0) v[k] = obj[k];
+  if (v.q3 && !v.q2) v.q2 = Q3OF[v.q3];               // 下の問いが読めれば上の問いは決まる
+  if (v.q2 && !v.goal) v.goal = Q2OF[v.q2];
+  if (v.q2 && Q2OF[v.q2] !== v.goal) v.q2 = null;      // 食い違うときは下の問いを空に
+  if (v.q3 && Q3OF[v.q3] !== v.q2) v.q3 = null;
+  if (v.goal === 'pref'){ v.q3 = null; v.panel = null; } // 好みの枝は聞かない
+  return {values:v, basis: typeof obj.basis === 'string' ? obj.basis.slice(0, 120) : ''};
+}
+var RETRY = 'うまく読み取れませんでした。少し置いてもう一度どうぞ。';
+function call(text, key, fetchFn){
+  var res;
+  return Promise.resolve().then(function(){
+    return fetchFn(API_URL, {method:'POST', headers:{'content-type':'application/json', 'x-api-key':key, 'anthropic-version':VERSION,
+      'anthropic-dangerous-direct-browser-access':'true'}, body:JSON.stringify(buildRequest(text))});
+  }).then(function(r){ res = r; return r.json().catch(function(){ return null; }); }, function(){ throw {msg:'通信できませんでした。'}; })
+  .then(function(data){
+    if (!res.ok) throw {msg: res.status === 401 ? 'APIキーが違うようです。' : RETRY};
+    if (!data) throw {msg:RETRY};
+    if (data.stop_reason === 'refusal') throw {msg:'うまく読み取れませんでした。'};
+    if (data.stop_reason === 'max_tokens') throw {msg:RETRY};
+    var t = (data.content || []).filter(function(b){ return b && b.type === 'text'; }).map(function(b){ return b.text; }).join('');
+    var obj; try { obj = JSON.parse(t); } catch (e) { throw {msg:RETRY}; }
+    var c = clean(obj); if (!c) throw {msg:RETRY};
+    return {ok:true, values:c.values, basis:c.basis};
+  }).catch(function(e){ return {ok:false, msg:(e && e.msg) || RETRY}; });
+}
+// 画面に入れる（入れるだけ。読めなかった項目は空にして「ここを選んでください」）
+function apply(doc, values){
+  var f = doc.getElementById('f'), missing = [], ana = values.goal === 'ana';
+  ['goal','q2','q3','panel'].forEach(function(k){
+    var rs = f.querySelectorAll('input[name="'+k+'"]'), i, fs = rs.length ? rs[0].closest('fieldset') : null;
+    for (i = 0; i < rs.length; i++) rs[i].checked = (rs[i].value === values[k]);
+    if (k === 'q2' || k === 'q3'){ var ids = k === 'q2' ? ['q2p', 'q2a'] : ['q3d', 'q3f']; ids.forEach(function(x){ var e = doc.getElementById(x); if (e) e.classList.remove('need'); });
+      fs = doc.getElementById(k === 'q2' ? (ana ? 'q2a' : 'q2p') : (values.q2 === 'feat' ? 'q3f' : 'q3d')); }
+    var skip = !ana && (k === 'q3' || k === 'panel'); // 好みの枝は Q3・評価する人を聞かない
+    if (fs) fs.classList[values[k] || skip ? 'remove' : 'add']('need');
+    if (!values[k] && !skip) missing.push(k);
+  });
+  return missing;
+}
+function store(){ try { return window.localStorage; } catch (e) { return null; } }
+function getKey(){ var s = store(); try { return (s && s.getItem(KEY_STORE)) || ''; } catch (e) { return ''; } }
+function setKey(v){ var s = store(); try { if (s){ if (v) s.setItem(KEY_STORE, v); else s.removeItem(KEY_STORE); } } catch (e) {} }
+function init(doc, fetchFn){
+  var key = doc.getElementById('fkey'), del = doc.getElementById('fkeydel'), go = doc.getElementById('fgo'), ta = doc.getElementById('ftext'),
+      msg = doc.getElementById('fmsg'), f = doc.getElementById('f');
+  if (!key || !go || !ta || !f || !f.querySelectorAll) return;
+  function sync(){ var has = !!key.value; ta.disabled = go.disabled = !has; }
+  key.value = getKey(); sync();
+  key.addEventListener('input', function(){ setKey(key.value.trim()); sync(); });
+  del.addEventListener('click', function(){ key.value = ''; setKey(''); sync(); });
+  f.addEventListener('change', function(ev){ var fs = ev && ev.target && ev.target.closest ? ev.target.closest('fieldset') : null; if (fs) fs.classList.remove('need'); });
+  go.addEventListener('click', function(){
+    var text = ta.value.trim(); if (!text){ msg.textContent = '文章を入れてください。'; return; }
+    go.disabled = true; msg.textContent = '読み取り中…';
+    return call(text, key.value.trim(), fetchFn).then(function(r){
+      go.disabled = false;
+      if (!r.ok){ msg.textContent = r.msg; return; }
+      var miss = apply(doc, r.values);
+      msg.textContent = '読み取り：' + (r.basis || '（説明なし）') + (miss.length ? '' : '　合っているか確かめてください。');
+      if (typeof window !== 'undefined' && window.selectorRender) window.selectorRender();
+      if (typeof window !== 'undefined' && window.sheetRefresh) window.sheetRefresh();
+    });
+  });
+}
+if (typeof document !== 'undefined' && typeof fetch !== 'undefined') init(document, function(u, o){ return fetch(u, o); });
+return {buildRequest:buildRequest, clean:clean, call:call, apply:apply, init:init, SCHEMA:SCHEMA, API_URL:API_URL, MODEL:MODEL, VERSION:VERSION};
+})();
+</script>
+</body>
+</html>
