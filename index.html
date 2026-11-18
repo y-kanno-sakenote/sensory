@@ -338,8 +338,8 @@ var METHODS = {
     refs:[K+' p.169（ランダムに出した数個の試料を濃度の順に並べる。スピアマンの順位相関）','同 p.171（試料の間の順位の差を検定。フリードマンの順位検定）']},
   scoring:{name:'評点法', short:'強さや好みを点数でつける', samples:'1種以上（p.194）', discrim:false,
     fit:'強さや好みの程度を点数で比べたい', unfit:null,
-    howto:['点数の目盛りにどこまで言葉を添えるかを決める（全部／一部／両端だけ＝p.195）','真ん中の点に答えが集まりやすい（p.78）'],
-    refs:[K+' p.194（数値の尺度で点数をつける）','同 p.78（採点法＝評点法）']},
+    howto:['点数の目盛りにどこまで言葉を添えるかを決める（全部／一部／範囲だけ決めて言葉はつけない＝p.195）','真ん中の点に答えが集まりやすい（p.78）'],
+    refs:[K+' p.194（数値の尺度で点数をつける）','同 p.195（尺度の数値に言葉を全部つける／一部つける／条件のほかはつけない、の3通り。試料が多いときはつり合い不完備型計画）','同 p.78（採点法＝評点法）']},
   cata:{name:'CATA法', short:'当てはまる言葉にチェックをつける', samples:'複数（例は4種類＝p.181）', discrim:false,
     fit:'言葉のチェックリストで特徴を出し、言葉ごとに試料の差を見る', unfit:null,
     howto:['同じ人に全試料を評価してもらうか、試料ごとに別の人にするかを先に決める（集計のしかたが変わる＝p.181）'],
@@ -1200,19 +1200,20 @@ function body(m, inp, extra, notes, common){
     C.PD_LEVELS.forEach(function(L){ more += '<tr><td>'+L.label+'</td><td><b>'+sizes(m.p0, L.pd).stable+'人</b></td></tr>'; });
     more += '</table><p class="src">差の大きさは「感じ分けられる人の割合」が50%・30%・20%のとき（区切りはこの道具の目安）。</p>';
     more += '<p>この方法は'+C.minDecidable(m.p0, C.ALPHA)+'人からです（それより少ないと、全員が正解しても判定できません）。</p>';
-    refs.push(C.PEOPLE.trained.ref);
+    if (!un) refs.push(C.PEOPLE.trained.ref); else if (pk === 'untrained') refs.push(C.PEOPLE.untrained.ref); // 見える1行と同じ出典（訓練していない人に p.86 は出していない）
     more += '<p>'+esc(C.NOTES.N4)+'</p><p>'+esc(NOTSEEN)+'</p>';
     refs.push(C.SRC.S+' p.4・p.15-17（臨界値・検出力80%・有意水準5%片側）・p.21（人数を増やしても検出力が上下するので「その人数以上は全部80%以上」を出す）・p.12（全員が同じ確率で当てる前提）');
     refs.push(C.SRC.O+' p.229（棄却できない＝結論づける証拠が足りない）・p.291（検出力80%）');
   } else {
-    if (P) refs.push(P.ref); else if (inp.goal === 'ana') refs.push(C.PEOPLE.trained.ref);
+    if (P) refs.push(P.ref); else if (inp.goal === 'ana' && !un) refs.push(C.PEOPLE.trained.ref);
     if (m.twoSided){ more += '<p>この方法は'+C.minDecidableTwoSided(C.ALPHA)+'人からです（それより少ないと、全員が同じ方を選んでも判定できません）。</p><p>'+esc(NOTSEEN)+'</p>'; refs.push(C.SRC.O+' p.229（棄却できない＝結論づける証拠が足りない）'); }
   }
+  if (un && (!m.nosheet || (notes || []).indexOf('N2') >= 0)) refs.push(C.SRC.K+' p.11（分析型・専門家パネルは訓練された評価者集団。嗜好型は訓練の必要はない）'); // 見える1行（N2）の（p.11）の出典（オーナー 2026-11-18「根拠だしとこ」）
   if (CALC[m.id]) more += '<h3>集計のしかた</h3><p>'+esc(CALC[m.id])+'</p>';
-  if (m.unfit) more += '<h3>向かない場面</h3><p>'+esc(m.unfit)+'</p>';
+  if (m.unfit){ more += '<h3>向かない場面</h3><p>'+esc(m.unfit)+'</p>'; if (m.id === 'paired_diff') refs.push(C.SRC.K+' p.164（違いの中身が分からなくても使える＝1:2点試験法）'); } // 向かない場面の（p.164）の出典（2026-11-18）
   more += '<h3>実施の注意</h3><ul>'+li(m.howto.concat(inp.goal === 'pref' && !m.nosheet ? ['部署の中で予備的に好みを聞くのは、厳密にはお客さんの評価ではありません。'] : []))+'</ul>'; // 旧 N1（kanno p.85）
   if (inp.goal === 'pref') refs.push(C.SRC.K+' p.85（調べたい母集団を代表するよう気をつける。研究室内や部署内などで予備的に行う嗜好評価は厳密には消費者の評価ではない）');
-  if (common) more += '<h3>どの方法でも共通の注意</h3><ul>'+li(C.COMMON_HOWTO)+'</ul>';
+  if (common){ more += '<h3>どの方法でも共通の注意</h3><ul>'+li(C.COMMON_HOWTO)+'</ul>'; refs.push(C.SRC.K+' p.74・p.78-79・p.106・p.109（どの方法でも共通の注意：先入観・出す順・温度と量・口ゆすぎ・3ケタのコード）'); } // 見える注意の（p.◯）の出典（2026-11-18）
   more += '<h3>根拠の頁</h3><ul class="src">'+li(refs)+'</ul>';
   return h + '<details class="more"><summary>くわしく</summary>'+more+'</details>';
 }
